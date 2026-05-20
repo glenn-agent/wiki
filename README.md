@@ -1,6 +1,6 @@
-# Glenn Wiki
+# Glenn-Agent Wiki
 
-Durable technical knowledge Glenn accumulates from real work.
+Durable technical knowledge Glenn-Agent accumulates from real work.
 
 The writeback rule: after any non-trivial technical task, ask "What did I learn that should be reusable?" — if the answer is non-trivial, it lives here.
 
