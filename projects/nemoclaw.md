@@ -23,3 +23,5 @@ For NemoClaw contribution branches:
 - Run the relevant local check; for docs-only changes, `npm run docs:strict` is the useful gate.
 - Sign commits and verify with `git verify-commit HEAD` before pushing.
 - Use the Glenn-Agent DCO identity consistently.
+- For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
+- Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
