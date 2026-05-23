@@ -60,3 +60,23 @@ openshell sandbox download <name> /sandbox/.openclaw/agents/main/sessions/<sessi
 ```
 
 Treat exported session logs as sensitive: they may contain prompts, tool inputs/outputs, file paths, assistant messages, thinking blocks, token usage, and cost metadata. This note came from the draft docs change for issue #3978 on branch `docs/session-state-paths`.
+
+## One-off sandbox commands
+
+When documenting or recommending one-off commands that should run inside a NemoClaw-managed sandbox, prefer the NemoClaw CLI wrapper:
+
+```bash
+nemoclaw <name> exec -- <command>
+```
+
+Use raw `openshell sandbox exec` only when the task deliberately needs to bypass NemoClaw's wrapper layer. The NemoClaw command preserves the project-specific state and expectations that users get from the documented workflow; jumping directly to OpenShell can be misleading in user-facing docs.
+
+This came up in issue #4087 / PR #4117 while clarifying the CLI selection guide.
+
+## Debugging explicit sandbox names
+
+For commands that accept an explicit sandbox name, distinguish between a verified missing sandbox and an ambiguous probe failure.
+
+For `nemoclaw debug --sandbox NAME`, a verified missing sandbox should fail non-zero without writing a tarball. But if the underlying sandbox lookup fails for some other reason, do not silently reinterpret that as “missing”; propagate the probe failure so the user sees the real cause.
+
+This came up in issue #4099 / PR #4118. The follow-up after review was to make `sandboxExists()` treat only explicit missing-sandbox errors as false and surface ambiguous `openshell sandbox get` failures.
