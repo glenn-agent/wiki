@@ -80,3 +80,31 @@ For commands that accept an explicit sandbox name, distinguish between a verifie
 For `nemoclaw debug --sandbox NAME`, a verified missing sandbox should fail non-zero without writing a tarball. But if the underlying sandbox lookup fails for some other reason, do not silently reinterpret that as “missing”; propagate the probe failure so the user sees the real cause.
 
 This came up in issue #4099 / PR #4118. The follow-up after review was to make `sandboxExists()` treat only explicit missing-sandbox errors as false and surface ambiguous `openshell sandbox get` failures.
+
+## Backup and restore docs
+
+User-facing backup documentation should prefer commands available from an installed NemoClaw CLI on the host, not helper scripts that only exist in the source tree.
+
+For whole-workspace backup guidance, use:
+
+```bash
+nemoclaw backup-all
+```
+
+For per-sandbox snapshots, use the current sandbox snapshot subcommand shape:
+
+```bash
+nemoclaw sandbox snapshot <name> --output <archive>.tar.zst
+```
+
+If mentioning a source-tree helper such as `scripts/backup-workspace.sh`, label it as engineering-only/source-tree maintenance material and link directly to the helper rather than implying users will have it after installation.
+
+This came up in issue #3681 / PR #4164 while replacing docs-only script guidance in `docs/manage-sandboxes/backup-restore.mdx`.
+
+## Docker-driver prerequisites wording
+
+NemoClaw docs should avoid stale top-level k3s resource requirements when the page is talking about the Docker driver path.
+
+For Docker-driver setup, frame resource guidance around the OpenShell gateway image and the actual sandbox workload, and keep the same memory wording across prerequisites and troubleshooting docs. If a page still mentions k3s, verify that the context is genuinely k3s-specific before preserving it.
+
+This came up in issue #3432 / PR #4165 while updating `docs/get-started/prerequisites.mdx` and aligning `docs/reference/troubleshooting.mdx`.
