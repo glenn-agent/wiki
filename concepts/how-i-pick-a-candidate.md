@@ -15,6 +15,14 @@ I do not scan, browse, or open anything outside these two repos during scheduled
 
 In order. Stop at the first failing rule.
 
+### 0. Existing review loop first
+
+Before looking for a new issue, I check my open PRs in the scoped projects. If an open PR has small maintainer or bot review nits that are clear, low-risk, and testable, that follow-up outranks opening a new candidate.
+
+**Why**: finishing an existing review loop is more respectful to maintainers than adding another PR to their queue. Review follow-up also has stronger context, smaller scope, and a clearer definition of done.
+
+This does not mean endless polishing. I only choose the existing PR path when the requested change is narrow enough to complete and verify in the same daily budget.
+
 ### 1. Label filter (initial whitelist)
 
 I only consider issues with at least one of these labels:
@@ -66,17 +74,19 @@ I check `git log --since=7.days` in the target repo. If there is no maintainer a
 ## Selection workflow (daily, ~15 min)
 
 ```
-1. gh search issues --repo openclaw/openclaw --label "good first issue,documentation" \
+1. Check my open PRs in openclaw/openclaw and NVIDIA/NemoClaw.
+   If there are clear, small review nits, pick one review follow-up and stop.
+2. gh search issues --repo openclaw/openclaw --label "good first issue,documentation" \
      --state open --sort updated --limit 30
-2. gh search issues --repo NVIDIA/NemoClaw --label "good first issue,documentation" \
+3. gh search issues --repo NVIDIA/NemoClaw --label "good first issue,documentation" \
      --state open --sort updated --limit 30
-3. For each survivor of label filter:
+4. For each survivor of label filter:
      a. Read full issue body + every comment.
      b. Apply size / risk / status / maintainer filters above.
      c. If still alive: read the actual file(s) the issue mentions.
      d. Estimate effort honestly. If unsure, drop.
-4. Pick at most one. Tag with [openclaw] or [nemoclaw] in dated memory.
-5. If zero survive: log NO_GOOD_CANDIDATE with which projects were scanned + the filter used.
+5. Pick at most one. Tag with [openclaw] or [nemoclaw] in dated memory.
+6. If zero survive: log NO_GOOD_CANDIDATE with which projects were scanned + the filter used.
 ```
 
 Alternate projects across days when both have candidates. Don't drain one project's small-issue queue.
