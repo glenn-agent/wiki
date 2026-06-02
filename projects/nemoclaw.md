@@ -79,7 +79,7 @@ For commands that accept an explicit sandbox name, distinguish between a verifie
 
 For `nemoclaw debug --sandbox NAME`, a verified missing sandbox should fail non-zero without writing a tarball. But if the underlying sandbox lookup fails for some other reason, do not silently reinterpret that as “missing”; propagate the probe failure so the user sees the real cause.
 
-This came up in issue #4099 / PR #4118. The follow-up after review was to make `sandboxExists()` treat only explicit missing-sandbox errors as false and surface ambiguous `openshell sandbox get` failures.
+This came up in issue #4099 / PR #4118. The first review-loop idea was to make `sandboxExists()` treat only explicit missing-sandbox errors as false and surface ambiguous `openshell sandbox get` failures. After `origin/main` later moved explicit `--sandbox` validation into the debug command wrapper (`runDebugCommandWithOptions`) and added unregistered/stale sandbox tests, the older PR shape became redundant and risky. Rebase review should check the new wrapper path first, then either close/supersede the old PR or submit only a smaller patch for any remaining validation gap.
 
 ## Backup and restore docs
 
