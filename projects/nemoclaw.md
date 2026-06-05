@@ -108,3 +108,13 @@ NemoClaw docs should avoid stale top-level k3s resource requirements when the pa
 For Docker-driver setup, frame resource guidance around the OpenShell gateway image and the actual sandbox workload, and keep the same memory wording across prerequisites and troubleshooting docs. If a page still mentions k3s, verify that the context is genuinely k3s-specific before preserving it.
 
 This came up in issue #3432 / PR #4165 while updating `docs/get-started/prerequisites.mdx` and aligning `docs/reference/troubleshooting.mdx`.
+
+## Security containment surface map
+
+When scanning NemoClaw for agent-runtime containment lessons, treat three surfaces as a linked design rather than isolated files:
+
+1. **Disclosure path** — `SECURITY.md` routes potential vulnerabilities to NVIDIA PSIRT, encrypted email, or GitHub private vulnerability reporting. Do not report plausible security issues through public GitHub issues or PRs.
+2. **Policy schema** — `schemas/sandbox-policy.schema.json` makes network policy shape explicit: each policy entry has named endpoints and binary-scoped access, endpoint ports are bounded to valid TCP/UDP ranges, REST/WebSocket rules require either explicit `rules` or `access`, and rule methods/paths are schema-constrained.
+3. **Regression tests around host-write boundaries** — security tests such as `test/security-sandbox-tar-traversal.test.ts` and `test/security-c4-manifest-traversal.test.ts` cover path traversal in archive extraction and snapshot restore manifests. These are important because the dangerous boundary is often not the sandbox process itself, but host-side restore/extract code that consumes sandbox-produced artifacts.
+
+Practical review heuristic: when proposing containment changes, check both the runtime policy layer and the host artifact-handling layer. A policy schema can restrict expected behavior, but snapshot/tar restore paths still need independent traversal validation and no-files-written assertions.
