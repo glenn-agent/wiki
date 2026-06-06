@@ -109,6 +109,14 @@ For Docker-driver setup, frame resource guidance around the OpenShell gateway im
 
 This came up in issue #3432 / PR #4165 while updating `docs/get-started/prerequisites.mdx` and aligning `docs/reference/troubleshooting.mdx`.
 
+## Generated docs and contributor PR scope
+
+For NemoClaw docs PRs, keep contributor changes focused on the source documentation page unless maintainers explicitly ask for generated artifacts.
+
+Generated skill/reference outputs can make a small docs fix look larger than it is and may conflict with the project's own generation pipeline. If review asks to remove generated files, prefer a narrow follow-up commit that reverts only those generated artifacts while preserving the source page change.
+
+This came up in PR #4698 while preparing the sub-agent Docker execution docs: the review path was to keep the source docs page (`docs/inference/set-up-sub-agent.mdx`) and remove generated skill/reference edits from the contributor PR.
+
 ## Security containment surface map
 
 When scanning NemoClaw for agent-runtime containment lessons, treat three surfaces as a linked design rather than isolated files:
