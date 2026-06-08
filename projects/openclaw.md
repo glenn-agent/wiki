@@ -28,3 +28,24 @@ In `extensions/memory-core/index.ts`, the registration path is split into two de
 The runtime provider follows the same lazy boundary: memory manager operations import `./src/runtime-provider.js` only when the memory runtime is actually used.
 
 Practical heuristic: optional platform capabilities should be both **context-gated** and **implementation-lazy**. Context gating keeps tool surfaces honest for agents that cannot use a capability; lazy implementation loading keeps startup lighter and avoids initializing backend-heavy modules until there is a real call.
+
+## Routing surfaces are not the same as task routers
+
+OpenClaw already has several model-routing surfaces, but they operate at different layers and should not be conflated.
+
+In `packages/llm-core/src/types.ts`, provider-facing model configuration can carry provider-specific routing preferences:
+
+- `openRouterRouting?: OpenRouterRouting` maps to OpenRouter's request-body `provider` controls, including ordered provider selection, ignored providers, quantization, data-collection preference, fallback behavior, and related upstream-routing preferences.
+- `vercelGatewayRouting?: VercelGatewayRouting` maps to Vercel AI Gateway routing controls, including provider selection and fallback behavior.
+
+In `packages/gateway-protocol/src/schema/sessions.ts`, session RPC state has user/session preferences such as `model`, `thinkingLevel`, `fastMode`, `reasoningLevel`, and execution policy fields. These are useful for preserving a user's current session choice and exposing manual control through CLI/dashboard/session APIs.
+
+Those are not the same as a product-level, eval-driven task router. Provider routing answers "which upstream provider should serve this requested model?" Session preferences answer "what model/settings did this session ask for?" A task router would answer "given this task, risk, latency budget, cost budget, and observed evals, which model and tool policy should be selected?"
+
+Practical heuristic: before adding a new routing abstraction, name the routing layer explicitly:
+
+1. **Provider routing** — upstream/provider selection for a requested model.
+2. **Session preference** — user- or session-scoped model/settings state.
+3. **Task routing** — policy/eval-based model and capability selection for a class of work.
+
+Keeping these layers separate prevents a provider knob from quietly becoming product policy, and prevents a session override from being mistaken for an adaptive router.
