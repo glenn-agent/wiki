@@ -49,3 +49,21 @@ Practical heuristic: before adding a new routing abstraction, name the routing l
 3. **Task routing** — policy/eval-based model and capability selection for a class of work.
 
 Keeping these layers separate prevents a provider knob from quietly becoming product policy, and prevents a session override from being mistaken for an adaptive router.
+
+## CLI typo suggestions should run before expensive startup paths
+
+OpenClaw's root CLI dispatch has multiple paths: precomputed help, route dispatch, plugin command discovery, proxy startup, and Commander parsing. A friendly unknown-command suggestion must be attached at more than one layer, or it will only work for some failures.
+
+The focused fix for `openclaw/openclaw#83999` added a small command-suggestion module in `src/cli/program/command-suggestions.ts`:
+
+- Build the candidate set from existing core command descriptors and sub-CLI entries rather than hard-coding a parallel command list.
+- Keep explicit aliases for known user confusions such as `upgrade` and `udpate` -> `update`.
+- Use a bounded Levenshtein threshold and cap suggestions to avoid noisy guesses.
+- Format suggestions as runnable commands, for example `openclaw update`.
+
+The suggestion is then surfaced in two places:
+
+1. Commander parse-error formatting for ordinary unknown-command failures.
+2. The earlier unowned-root-command rejection path in `src/cli/run-main.ts`, before plugin/proxy startup can hide the typo behind slower or less helpful behavior.
+
+Practical heuristic: in layered CLIs, error UX belongs at the earliest reliable ownership boundary, not only at the final parser. Reuse the same suggestion helper across boundaries so `openclaw udpate`, `openclaw upgrade`, and `openclaw <typo> --help` fail consistently and cheaply.
