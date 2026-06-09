@@ -39,6 +39,8 @@ Validation should cover both static and runtime-shaped evidence:
 - `git diff --check`;
 - a Docker runtime-shaped check that confirms ARG-to-ENV values appear in container config and inside `env` output.
 
+Avoid source-text assertions for this path. NemoClaw CI enforces a source-shape test budget, so a test that only checks Dockerfile text can fail `source-shape:check` even when the behavior is valid. Prefer behavior-shaped tests that inspect generated Dockerfile env semantics, service env propagation, or container runtime output rather than `toContain` on source text.
+
 Practical heuristic: if non-shell processes are expected to inherit a setting, do not rely only on shell startup files or wrapper scripts. Put the baseline in container config, then let startup logic refine it.
 
 ## Onboarding step labels
