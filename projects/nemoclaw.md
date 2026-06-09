@@ -26,6 +26,21 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## Proxy environment defaults in sandbox images
+
+Proxy settings that are meant to be a sandbox baseline should be visible at the image/container environment layer, not only through an interactive startup script.
+
+For issue #4304 / PR #5014, the safe shape was to seed `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, and lowercase variants in the generated sandbox Dockerfile from `NEMOCLAW_PROXY_HOST` and `NEMOCLAW_PROXY_PORT`, while preserving the existing `nemoclaw-start.sh` rewrite path. That makes direct process launch and `docker exec <sandbox> env` see the expected proxy defaults, while the runtime startup script can still rewrite the effective proxy target when needed.
+
+Validation should cover both static and runtime-shaped evidence:
+
+- focused unit tests for Dockerfile patching / service env behavior;
+- build/type gates relevant to the changed CLI or service path;
+- `git diff --check`;
+- a Docker runtime-shaped check that confirms ARG-to-ENV values appear in container config and inside `env` output.
+
+Practical heuristic: if non-shell processes are expected to inherit a setting, do not rely only on shell startup files or wrapper scripts. Put the baseline in container config, then let startup logic refine it.
+
 ## Onboarding step labels
 
 Onboarding progress labels should describe the step, not a single provider implementation, unless the step is genuinely provider-specific.
