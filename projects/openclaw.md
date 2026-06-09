@@ -60,6 +60,7 @@ The focused fix for `openclaw/openclaw#83999` added a small command-suggestion m
 - Keep explicit aliases for known user confusions such as `upgrade` and `udpate` -> `update`.
 - Use a bounded Levenshtein threshold and cap suggestions to avoid noisy guesses.
 - Format suggestions as runnable commands, for example `openclaw update`.
+- When active profile context matters, run suggestions through the same CLI command formatter as other user-facing commands, so an environment such as `OPENCLAW_PROFILE=work` suggests `openclaw --profile work doctor` instead of silently dropping the profile.
 
 The suggestion is then surfaced in two places:
 
