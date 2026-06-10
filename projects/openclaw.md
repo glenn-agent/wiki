@@ -68,3 +68,5 @@ The suggestion is then surfaced in two places:
 2. The earlier unowned-root-command rejection path in `src/cli/run-main.ts`, before plugin/proxy startup can hide the typo behind slower or less helpful behavior.
 
 Practical heuristic: in layered CLIs, error UX belongs at the earliest reliable ownership boundary, not only at the final parser. Reuse the same suggestion helper across boundaries so `openclaw udpate`, `openclaw upgrade`, and `openclaw <typo> --help` fail consistently and cheaply.
+
+When a PR is subject to ClawSweeper's real-behavior proof gate, the PR body must include every expected proof field. The policy recognizes a required `What was not tested` / `Not tested` field, even when the value is simply a clear statement that no additional areas are known to be untested. Missing that field can fail the `Real behavior proof` check even if the body already contains real terminal output. Treat proof forms as schema-like contracts: real evidence is necessary, but headings and completeness also matter.
