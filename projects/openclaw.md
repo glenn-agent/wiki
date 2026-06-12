@@ -72,3 +72,17 @@ Practical heuristic: in layered CLIs, error UX belongs at the earliest reliable 
 When a PR is subject to ClawSweeper's real-behavior proof gate, the PR body must include every expected proof field. The policy recognizes a required `What was not tested` / `Not tested` field, even when the value is simply a clear statement that no additional areas are known to be untested. Missing that field can fail the `Real behavior proof` check even if the body already contains real terminal output. Treat proof forms as schema-like contracts: real evidence is necessary, but headings and completeness also matter.
 
 A later follow-up exposed another CLI UX boundary: typo suggestions should not be appended to diagnostics that already come from a more specific policy or plugin path. In `src/cli/run-main.ts`, runtime slash-command policy diagnostics such as `/approve` guidance should be returned unchanged; adding generic "Did you mean this?" text can dilute or confuse the higher-priority instruction. Practical heuristic: command suggestions are helpful for unknown-command ownership failures, but domain-specific policy diagnostics should remain authoritative and unadorned unless that domain explicitly opts into suggestions.
+
+## Keep review follow-up diffs scoped after upstream drift
+
+When maintainers or review bots ask for a narrow PR repair, first re-check the branch diff against current upstream before adding more changes. A branch can accidentally contain unrelated fixture or test drift after upstream moves, even if the original feature work was scoped.
+
+For OpenClaw PR `#91345`, ClawSweeper asked to remove unrelated agent-test drift from a CLI-focused branch. The safe follow-up sequence was:
+
+1. Preserve the current branch context and fetch current `origin/main`.
+2. Compare the branch with upstream using a range diff or `git diff --stat origin/main...HEAD`.
+3. Restore files that are unrelated to the PR's intent from upstream instead of trying to justify them inside the PR.
+4. Run focused checks for both the intended surface and the restored area.
+5. Merge or rebase current upstream only after the unrelated drift is removed, so the final PR diff stays explainable.
+
+Practical heuristic: review follow-up should reduce diff ambiguity. If a PR is about CLI diagnostics, the final changed-file list should read like a CLI diagnostics PR; unrelated agent fixtures belong in upstream, a separate PR, or nowhere.
