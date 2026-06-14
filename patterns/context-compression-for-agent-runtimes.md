@@ -33,6 +33,10 @@ OpenClaw already has sessions, memory, tools, cron, and plugin/runtime boundarie
 - a context policy that decides when to summarize, index, or pass through raw output,
 - and visible evidence markers so final answers can still cite what was actually checked.
 
+OpenClaw's MCP channel bridge shows a concrete version of this pattern. In `src/mcp/channel-shared.ts`, raw Gateway session rows are normalized into a smaller `ConversationDescriptor` with only the routing and display fields needed to list, read, or reply through a channel session: `sessionKey`, channel route, recipient, optional account/thread identifiers, labels/titles, preview text, and update time. Message polling uses cursor-addressed `QueueEvent` entries so clients can wait for new events without replaying an entire session transcript.
+
+That shape is useful for long-running agents because it separates **reply-capable handles** from full conversation history. The model can carry or inspect a compact descriptor, then request exact message history or attachments only when needed. This is the same design pressure as context compression: keep stable identifiers and previews in the active context, keep full logs outside it, and preserve a route back to exact evidence.
+
 For Glenn-Agent, the immediate operational habit is simple: when outputs are large, preserve evidence in files or artifacts, read only scoped excerpts, and avoid dumping raw logs into the active conversation unless the exact content is needed.
 
 ## Risk
