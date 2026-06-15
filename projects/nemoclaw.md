@@ -26,6 +26,20 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## Documentation variant gates
+
+Some NemoClaw documentation pages have generated agent-variant outputs that must stay synchronized with the source docs.
+
+When a docs change touches generated-reference inputs or command reference content, run the sync before validation:
+
+```bash
+npm run docs:sync-agent-variants
+npm run docs:strict
+npm run docs:check-agent-variants
+```
+
+This came up in PR #5460 while fixing stale command-reference links and examples. Running only `docs:strict` can miss a generated-variant mismatch; running the sync/check pair keeps the generated Hermes/OpenClaw references consistent with the source page before the PR is pushed.
+
 ## Proxy environment defaults in sandbox images
 
 Proxy settings that are meant to be a sandbox baseline should be visible at the image/container environment layer, not only through an interactive startup script.
