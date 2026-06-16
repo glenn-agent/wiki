@@ -26,6 +26,22 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## Local compatible endpoints and model files
+
+NemoClaw can point at an OpenAI-compatible local endpoint, but a raw model file is not itself an endpoint.
+
+For GGUF workflows, users need a serving process such as `llama.cpp` exposing an OpenAI-compatible API, then configure NemoClaw with that server URL and the served model id. For Ollama, use an Ollama model tag rather than a direct `.gguf` filesystem path.
+
+This came up in issue #2412 / PR #5505 while clarifying local endpoint setup. Practical heuristic: first identify what protocol the provider selector expects (`ollama` model tag vs OpenAI-compatible URL), then document the server startup and the model id users should pass to NemoClaw.
+
+## Legacy k3s sandbox resources
+
+References to `sandboxes.agents.x-k8s.io` belong to NemoClaw's older embedded-k3s gateway topology, not the current default Docker-driver mental model.
+
+When documentation mentions the Sandbox CRD or k3s controller reconciliation, label it as legacy/non-Docker-driver topology and contrast it with the current Docker-driver path. Otherwise users may chase Kubernetes resources that do not exist in their default setup.
+
+This came up in issue #2423 / PR #5506 while clarifying deployment topology and host-alias command reference text.
+
 ## Documentation variant gates
 
 Some NemoClaw documentation pages have generated agent-variant outputs that must stay synchronized with the source docs.
