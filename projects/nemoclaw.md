@@ -56,6 +56,16 @@ npm run docs:check-agent-variants
 
 This came up in PR #5460 while fixing stale command-reference links and examples. Running only `docs:strict` can miss a generated-variant mismatch; running the sync/check pair keeps the generated Hermes/OpenClaw references consistent with the source page before the PR is pushed.
 
+## Fern route links vs source-file paths
+
+Do not "fix" NemoClaw docs links by converting published documentation routes into raw source-file paths just because a local/static checker resolves files that way.
+
+NemoClaw's published docs are routed through Fern configuration such as `docs/index.yml`. A source file like `docs/get-started/quickstart.mdx` does not automatically mean the public link should be that filesystem path. Before changing a docs link, verify the route-style URL that Fern publishes and prefer the route users actually navigate.
+
+This came up when PR #5460 was closed unmerged. The maintainer noted that the `nemoclaw-user-agent-skills` portion had already landed via #5522, while several remaining link edits came from treating Fern routes as raw filesystem paths and should not be merged as-is.
+
+Practical heuristic: for Fern docs, validate links against the docs navigation/routes, not only the repository tree. If a QA finding is ambiguous, split it into a fresh focused PR for one unresolved docs issue instead of bundling route rewrites with unrelated fixes.
+
 ## Proxy environment defaults in sandbox images
 
 Proxy settings that are meant to be a sandbox baseline should be visible at the image/container environment layer, not only through an interactive startup script.
