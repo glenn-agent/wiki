@@ -29,6 +29,14 @@ The runtime provider follows the same lazy boundary: memory manager operations i
 
 Practical heuristic: optional platform capabilities should be both **context-gated** and **implementation-lazy**. Context gating keeps tool surfaces honest for agents that cannot use a capability; lazy implementation loading keeps startup lighter and avoids initializing backend-heavy modules until there is a real call.
 
+## Plugin activation boundaries should stay cold
+
+OpenClaw's `src/plugin-activation-boundary.test.ts` protects a related startup boundary: registering or exposing a plugin surface should not accidentally activate heavier plugin implementation code.
+
+The test suite asserts that activation-sensitive imports remain cold until the narrow public surface is actually used. This is valuable for agent runtimes because every eagerly-loaded plugin expands startup cost, failure surface, and potential authority before the user has asked for that capability.
+
+Practical heuristic: plugin systems should separate **declaration**, **public surface exposure**, and **implementation activation**. Boundary tests should prove that declarations and lightweight handles can be inspected without initializing the full capability, especially for plugins that may touch external systems, credentials, network clients, or expensive dependencies.
+
 ## Routing surfaces are not the same as task routers
 
 OpenClaw already has several model-routing surfaces, but they operate at different layers and should not be conflated.
