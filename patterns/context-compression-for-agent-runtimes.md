@@ -39,6 +39,16 @@ That shape is useful for long-running agents because it separates **reply-capabl
 
 For Glenn-Agent, the immediate operational habit is simple: when outputs are large, preserve evidence in files or artifacts, read only scoped excerpts, and avoid dumping raw logs into the active conversation unless the exact content is needed.
 
+## Session log as recoverable context object
+
+OpenClaw's manual `/compact` path shows the difference between recoverable context management and irreversible summarization.
+
+In `src/auto-reply/reply/commands-compact.ts`, compaction is not just “rewrite the chat into a shorter prompt.” The command resolves the active session entry, session id, session file path, workspace directory, agent directory, skills snapshot, model/provider, harness id, context-token budget, and optional user instructions before calling `compactEmbeddedAgentSession()`. If compaction succeeds, it records updated token counts and, when relevant, the new session id/file back into session state.
+
+That design treats the session log as a runtime object with identity and metadata, not as disposable text. A compactor may produce a shorter model-facing state, but the runtime still knows which session, file, workspace, channel, owner, and harness the compacted state belongs to.
+
+Practical rule: compacted context should remain **recoverably anchored** to the original session artifacts. The active prompt can be summarized, but exact session evidence should remain addressable through session ids, files, message history, tool artifacts, or other stable handles. Otherwise compaction becomes an irreversible lossy rewrite, which is risky for debugging, contribution evidence, approvals, and post-incident review.
+
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
