@@ -81,6 +81,24 @@ When a PR is subject to ClawSweeper's real-behavior proof gate, the PR body must
 
 A later follow-up exposed another CLI UX boundary: typo suggestions should not be appended to diagnostics that already come from a more specific policy or plugin path. In `src/cli/run-main.ts`, runtime slash-command policy diagnostics such as `/approve` guidance should be returned unchanged; adding generic "Did you mean this?" text can dilute or confuse the higher-priority instruction. Practical heuristic: command suggestions are helpful for unknown-command ownership failures, but domain-specific policy diagnostics should remain authoritative and unadorned unless that domain explicitly opts into suggestions.
 
+## Docker Compose examples must respect service entrypoints
+
+When documenting `docker compose run` commands, check the service's configured `entrypoint` before adding shell-style arguments.
+
+For OpenClaw PR `#95953`, the `openclaw-cli` Compose service uses a Node/CLI entrypoint. Examples such as:
+
+```bash
+docker compose run --rm openclaw-cli -lc '...'
+```
+
+look like ordinary shell snippets, but `-lc` is passed to the Node entrypoint instead of to a shell. The corrected pattern is to override the entrypoint explicitly:
+
+```bash
+docker compose run --rm --entrypoint sh openclaw-cli -lc '...'
+```
+
+Practical heuristic: if a Docker Compose docs command expects shell parsing, make the shell explicit with `--entrypoint sh` (or the intended shell) unless the service already declares a shell entrypoint. Otherwise the documented command may be syntactically valid Docker but semantically invalid for the container's real process contract.
+
 ## Keep review follow-up diffs scoped after upstream drift
 
 When maintainers or review bots ask for a narrow PR repair, first re-check the branch diff against current upstream before adding more changes. A branch can accidentally contain unrelated fixture or test drift after upstream moves, even if the original feature work was scoped.
