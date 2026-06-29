@@ -33,6 +33,19 @@ For each important rule, include enough rationale to prevent accidental simplifi
 - Promote repeated lessons from raw daily memory into durable wiki notes.
 - Treat context changes as code changes: review diffs, scan for secrets, and commit with a clear message.
 
+## Machine-readable contracts need human rationale
+
+Agent-facing context benefits from the same discipline as design-token systems or spec-driven coding briefs: stable, machine-readable names give tools something exact to target, while nearby prose explains the tradeoff behind each name.
+
+For Glenn-Agent, that means future context files should avoid being only narrative essays or only rigid schema. The useful shape is a hybrid:
+
+- explicit section names, identifiers, file paths, branch names, and allowed actions that an agent can match reliably
+- short rationale blocks explaining why the rule exists and when it should change
+- examples that show the intended behavior, especially for commands, repo state, or writeback decisions
+- public-safety annotations when a field could tempt future leakage of private endpoints, tokens, or personal details
+
+The schema-like layer keeps the runtime precise. The prose layer keeps later edits from preserving a rule's surface while losing the judgment that made it safe.
+
 ## Failure modes
 
 - **Prompt landfill:** one file grows until nobody can tell which rules are still active.
