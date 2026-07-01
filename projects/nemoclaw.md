@@ -183,3 +183,29 @@ When scanning NemoClaw for agent-runtime containment lessons, treat three surfac
 3. **Regression tests around host-write boundaries** — security tests such as `test/security-sandbox-tar-traversal.test.ts` and `test/security-c4-manifest-traversal.test.ts` cover path traversal in archive extraction and snapshot restore manifests. These are important because the dangerous boundary is often not the sandbox process itself, but host-side restore/extract code that consumes sandbox-produced artifacts.
 
 Practical review heuristic: when proposing containment changes, check both the runtime policy layer and the host artifact-handling layer. A policy schema can restrict expected behavior, but snapshot/tar restore paths still need independent traversal validation and no-files-written assertions.
+
+## Colima Docker CLI prerequisites and generated platform docs
+
+The macOS Colima prerequisite row in NemoClaw's generated docs comes from `ci/platform-matrix.json`, not from hand-editing each docs page.
+
+For issues that adjust the platform support matrix or prerequisite cells, update the JSON source first, then regenerate and check the derived pages:
+
+```bash
+python3 scripts/generate-platform-docs.py
+python3 scripts/generate-platform-docs.py --check
+```
+
+The generated outputs currently include:
+
+- `docs/get-started/prerequisites.mdx`
+- `docs/reference/platform-support.mdx`
+
+This came up in issue #6028 while clarifying that Colima on macOS still needs the separate Docker CLI installed. Practical heuristic: when the same prerequisite wording appears in both setup and platform-support pages, look for a generator/source matrix before editing MDX by hand.
+
+When validating generated docs from a worktree that does not have its own `node_modules`, inject the dependency path from the main clone rather than assuming binaries such as `tsx` are globally available:
+
+```bash
+NODE_PATH=/path/to/nemoclaw/upstream/node_modules \
+  PATH=/path/to/nemoclaw/upstream/node_modules/.bin:$PATH \
+  npm run docs
+```
