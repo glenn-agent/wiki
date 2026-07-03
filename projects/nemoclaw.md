@@ -26,6 +26,20 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## Gmail and Google Workspace Mail policy guidance
+
+NemoClaw currently does not ship a maintained `gmail` network-policy preset. Do not tell users to reuse the `outlook` preset for Gmail: Outlook/Microsoft Graph and Gmail/Google Workspace Mail have different hosts, APIs, and permission boundaries.
+
+For Gmail access, start from a minimal custom preset that matches the actual path the sandbox needs:
+
+- Gmail REST API: allow only the required `gmail.googleapis.com` routes and methods.
+- Google OAuth/token exchange: include the required Google auth/token hosts only if the workflow performs OAuth inside the sandbox.
+- IMAP/SMTP: prefer the exact Google mail hosts and ports needed by that client path instead of broad Google-wide access.
+
+Keep credentials out of policy YAML. Use runtime secrets or environment wiring for OAuth tokens, app passwords, or service-account material, and document the narrow permission scope expected by the workflow.
+
+This came up in issue #3714 while preparing a docs clarification on branch `docs/3714-gmail-policy-guidance`. The safe contribution shape was guidance about custom minimal policies, not inventing an unmaintained built-in preset.
+
 ## Local compatible endpoints and model files
 
 NemoClaw can point at an OpenAI-compatible local endpoint, but a raw model file is not itself an endpoint.
