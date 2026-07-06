@@ -81,6 +81,20 @@ When a PR is subject to ClawSweeper's real-behavior proof gate, the PR body must
 
 A later follow-up exposed another CLI UX boundary: typo suggestions should not be appended to diagnostics that already come from a more specific policy or plugin path. In `src/cli/run-main.ts`, runtime slash-command policy diagnostics such as `/approve` guidance should be returned unchanged; adding generic "Did you mean this?" text can dilute or confuse the higher-priority instruction. Practical heuristic: command suggestions are helpful for unknown-command ownership failures, but domain-specific policy diagnostics should remain authoritative and unadorned unless that domain explicitly opts into suggestions.
 
+## Channel MCP tools should keep handlers thin
+
+OpenClaw's `src/mcp/channel-tools.ts` is a useful integration pattern for exposing channel operations through MCP without pushing routing or permission complexity into every tool handler.
+
+The registration layer does three narrow jobs:
+
+- declare small public schemas with `zod`;
+- translate tool arguments into bridge calls;
+- return compact text plus structured content for downstream clients.
+
+The heavier responsibilities stay behind `OpenClawChannelBridge`: session-route lookup, Gateway readiness, event queueing/waiting, message routing, attachment lookup, and approval response plumbing. Even permission tools (`permissions_list_open` and `permissions_respond`) expose a minimal MCP surface while the bridge owns the actual approval state and resolution path.
+
+Practical heuristic: when adding MCP or browser/GUI-control surfaces, keep the MCP handler as a protocol adapter, not a task router. Let it validate input and shape output, but centralize readiness, routing, authorization, event streams, and provider-specific behavior in a bridge layer that can be tested and audited separately.
+
 ## Docker Compose examples must respect service entrypoints
 
 When documenting `docker compose run` commands, check the service's configured `entrypoint` before adding shell-style arguments.
