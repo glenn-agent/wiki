@@ -126,3 +126,17 @@ For OpenClaw PR `#91345`, ClawSweeper asked to remove unrelated agent-test drift
 5. Merge or rebase current upstream only after the unrelated drift is removed, so the final PR diff stays explainable.
 
 Practical heuristic: review follow-up should reduce diff ambiguity. If a PR is about CLI diagnostics, the final changed-file list should read like a CLI diagnostics PR; unrelated agent fixtures belong in upstream, a separate PR, or nowhere.
+
+
+## Canonicalize compatibility aliases at config boundaries
+
+OpenClaw issue `#103954` exposed a config-boundary hazard in MCP server definitions: a compatibility alias such as `disabled: true` may be accepted by loading/normalization code, while downstream runtime logic only honors the canonical shape (`enabled: false`). That creates a subtle trust bug: the user expressed a clear disable intent, but the runtime may act as if the server is still enabled.
+
+The focused fix in PR `#104157` treats aliases as input compatibility only:
+
+- boolean `disabled` is canonicalized during MCP config normalization;
+- `disabled: true` becomes `enabled: false` only when canonical `enabled` is not already explicit;
+- normalized config output omits the alias key;
+- raw schema validation rejects `disabled` with a hint to use `enabled: false`.
+
+Practical heuristic: compatibility aliases should collapse at the earliest stable config boundary. Runtime code should consume one canonical representation, not carry parallel meanings forward. If both alias and canonical keys appear, preserve a documented precedence rule and test it explicitly.
