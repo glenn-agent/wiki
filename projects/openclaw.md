@@ -140,3 +140,17 @@ The focused fix in PR `#104157` treats aliases as input compatibility only:
 - raw schema validation rejects `disabled` with a hint to use `enabled: false`.
 
 Practical heuristic: compatibility aliases should collapse at the earliest stable config boundary. Runtime code should consume one canonical representation, not carry parallel meanings forward. If both alias and canonical keys appear, preserve a documented precedence rule and test it explicitly.
+
+## Legacy config repair should precede strict schema validation
+
+The follow-up to OpenClaw PR `#104157` exposed a second boundary around compatibility aliases: if a legacy key is intentionally rejected by the raw schema, the repair path must run before strict validation is used as the final gate.
+
+For MCP server config, raw `mcp.servers.*.disabled` is no longer accepted as a canonical schema shape, but `openclaw doctor --fix` still needs to migrate older configs safely. The migration should:
+
+- detect raw legacy alias keys before validation would reject them;
+- rewrite `disabled: true` to canonical `enabled: false` when `enabled` is not already explicit;
+- remove the legacy alias after repair;
+- prove the repaired config passes the same strict validation that rejects the raw alias.
+
+Practical heuristic: when tightening a config schema, pair the rejection test with a migration test. The full proof is not only “bad legacy shape is rejected”; it is “legacy shape is detected, repaired by the supported fixer, and the repaired result validates under the new canonical contract.”
+
