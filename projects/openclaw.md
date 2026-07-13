@@ -81,6 +81,20 @@ When a PR is subject to ClawSweeper's real-behavior proof gate, the PR body must
 
 A later follow-up exposed another CLI UX boundary: typo suggestions should not be appended to diagnostics that already come from a more specific policy or plugin path. In `src/cli/run-main.ts`, runtime slash-command policy diagnostics such as `/approve` guidance should be returned unchanged; adding generic "Did you mean this?" text can dilute or confuse the higher-priority instruction. Practical heuristic: command suggestions are helpful for unknown-command ownership failures, but domain-specific policy diagnostics should remain authoritative and unadorned unless that domain explicitly opts into suggestions.
 
+## Permission bridges should fail closed around external authority
+
+OpenClaw's Copilot permission bridge is a useful pattern for agent integrations that adapt runtime policy decisions into an SDK permission-handler shape.
+
+In `extensions/copilot/src/permission-bridge.ts`, the bridge keeps authority conservative at every policy boundary:
+
+- `rejectAllPolicy` is the default when no host policy is installed;
+- policies may return `undefined` to mean "no opinion", but composition converts that to a reject rather than an allow;
+- host policy exceptions are caught and surfaced as reject feedback, so a policy crash does not become an SDK-level ambiguous failure or accidental approval;
+- `allowOncePolicy` is named explicitly for tests/smoke runs instead of hiding SDK `approveAll` behavior behind a vague default;
+- `createPermissionBridge()` always resolves with an SDK-shaped decision and falls back to the fail-closed reject when the policy returns nothing.
+
+Practical heuristic: adapters that translate host policy into external SDK authority should make "deny" the only silent fallback. Approval paths should be explicit and named, while missing policies, undefined decisions, and thrown errors should resolve as rejection with useful diagnostics.
+
 ## Channel MCP tools should keep handlers thin
 
 OpenClaw's `src/mcp/channel-tools.ts` is a useful integration pattern for exposing channel operations through MCP without pushing routing or permission complexity into every tool handler.
