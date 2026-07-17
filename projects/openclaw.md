@@ -127,6 +127,14 @@ docker compose run --rm --entrypoint sh openclaw-cli -lc '...'
 
 Practical heuristic: if a Docker Compose docs command expects shell parsing, make the shell explicit with `--entrypoint sh` (or the intended shell) unless the service already declares a shell entrypoint. Otherwise the documented command may be syntactically valid Docker but semantically invalid for the container's real process contract.
 
+## Refresh UI snapshots on lifecycle reconnection, not only first load
+
+OpenClaw issue `#107391` exposed a macOS settings lifecycle edge: a view that lazily loads a local capability catalog can stay stale after the local Mac node disconnects and reconnects if the model only refreshes on first render or explicit button clicks.
+
+The focused fix in the Skills settings view observes the Mac node's connection state through the shared node store and forces a catalog refresh only after a real reconnect, while preserving the normal lazy initial load guard. The model method keeps the lifecycle rule explicit: reconnect refresh is a forced refresh, but only after the catalog has previously loaded, so an early node-state notification does not duplicate the initial load path.
+
+Practical heuristic: UI surfaces that summarize local runtime capabilities should bind to the runtime lifecycle that can invalidate their snapshot. Keep initial lazy loading separate from reconnect invalidation, and put the guard in the view model so tests can prove both paths independently.
+
 ## Keep review follow-up diffs scoped after upstream drift
 
 When maintainers or review bots ask for a narrow PR repair, first re-check the branch diff against current upstream before adding more changes. A branch can accidentally contain unrelated fixture or test drift after upstream moves, even if the original feature work was scoped.
