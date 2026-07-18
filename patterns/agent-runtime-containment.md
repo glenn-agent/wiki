@@ -25,6 +25,7 @@ Before expanding an agent runtime's authority, check:
 - Treat egress allowlists, mounted paths, browser sessions, and account tokens as capabilities that need justification.
 - Prefer small, verifiable tool calls over broad automation that is difficult to audit.
 - Use approvals for high-impact actions, but do not rely on approvals as the only safety layer; make the environment deny unsafe classes of action by default.
+- Back important boundaries with regression tests where possible. A containment rule that only exists as an instruction to the model is easy to bypass accidentally; a host-side environment constraint plus a focused test gives maintainers a repeatable proof that the unsafe path stays closed.
 
 ## Practical habit
 
