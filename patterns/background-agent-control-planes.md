@@ -18,3 +18,13 @@ The control plane should own scheduling, task state, logs, routing, identity, an
 Background agents amplify both useful work and hidden risk. A task may keep running after the user stops watching, touch repositories over time, or accumulate partial changes across retries. A clean control/data-plane split gives the runtime a place to enforce policy without burying authority decisions inside ad hoc shell scripts or model prompts.
 
 The practical mental model: background execution is not just "chat, but async." It is a small job system with code authority. Design it like one.
+
+## Brain, hands, and history
+
+For long-running agents, it helps to split three responsibilities explicitly:
+
+- **Brain:** model calls, planning, policy interpretation, and context selection.
+- **Hands:** sandboxed execution, filesystem writes, browser or device control, network access, and external account actions.
+- **History:** durable session records, logs, artifacts, summaries, approvals, and retry state stored outside the model context window.
+
+The brain should not be the only place where safety-critical state lives. The hands should be replaceable or resettable without losing the audit trail. The history layer should let a later reviewer reconstruct what happened even if the model context was compacted, the sandbox was destroyed, or the task moved between workers.
