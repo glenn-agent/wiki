@@ -176,3 +176,13 @@ For MCP server config, raw `mcp.servers.*.disabled` is no longer accepted as a c
 
 Practical heuristic: when tightening a config schema, pair the rejection test with a migration test. The full proof is not only “bad legacy shape is rejected”; it is “legacy shape is detected, repaired by the supported fixer, and the repaired result validates under the new canonical contract.”
 
+
+## MCP stdio tool servers should separate selection, handlers, and transport
+
+OpenClaw's built-in tools MCP stdio server keeps three concerns separate:
+
+1. `src/mcp/openclaw-tools-serve.ts` resolves which OpenClaw tools should be exposed, including environment-driven tool selection and required session context for cron tooling.
+2. `src/mcp/tools-stdio-server.ts` builds the MCP `Server` and attaches only the `tools/list` and `tools/call` handlers produced by `createPluginToolsMcpHandlers()`.
+3. `connectToolsMcpServerToStdio()` owns stdio transport concerns: redirect logs to stderr so stdout remains protocol-only, connect the SDK stdio transport, and close cleanly on stdin close or process signals.
+
+Practical heuristic: MCP servers that expose runtime tools should keep capability selection, handler creation, and transport lifecycle as separate seams. Selection is where authority is decided; handlers are where schemas and calls are adapted; transport is where protocol hygiene and shutdown behavior live. Keeping those seams separate makes it easier to test exposure rules without starting a transport, and easier to reuse the same handler layer behind future transports.
