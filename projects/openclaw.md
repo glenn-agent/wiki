@@ -186,3 +186,17 @@ OpenClaw's built-in tools MCP stdio server keeps three concerns separate:
 3. `connectToolsMcpServerToStdio()` owns stdio transport concerns: redirect logs to stderr so stdout remains protocol-only, connect the SDK stdio transport, and close cleanly on stdin close or process signals.
 
 Practical heuristic: MCP servers that expose runtime tools should keep capability selection, handler creation, and transport lifecycle as separate seams. Selection is where authority is decided; handlers are where schemas and calls are adapted; transport is where protocol hygiene and shutdown behavior live. Keeping those seams separate makes it easier to test exposure rules without starting a transport, and easier to reuse the same handler layer behind future transports.
+
+## Session history tools should be bounded recall, not raw transcript access
+
+OpenClaw's `sessions_history` tool is designed as a safe recall surface over visible sessions, not as unrestricted transcript file access.
+
+The boundary combines several safeguards:
+
+- Session references are resolved through scoped session helpers before any Gateway history read, including sandbox-aware restrictions and visibility checks.
+- Tool messages are omitted by default with `stripToolMessages()`; callers must opt into `includeTools`.
+- Assistant text is sanitized before return: tool payload scaffolding, reasoning/replay metadata, oversized nested details, usage/cost fields, image base64 data, and token-like text are stripped or redacted.
+- Each text block has a per-block cap, and the full response has a hard JSON-byte cap with an explicit `[sessions_history omitted: message too large]` placeholder if even the newest item is too large.
+- Pagination and `messageId` anchoring expose enough context for follow-up recall while keeping `truncated`, `droppedMessages`, `contentTruncated`, `contentRedacted`, `bytes`, and offset metadata visible to the caller.
+
+Practical heuristic: cross-session recall tools should be treated as capability-scoped summaries, not file readers. Make visibility checks happen before storage access, make redaction independent from general logging settings, cap both individual content and whole responses, and return explicit truncation/redaction flags so the agent knows when it is reasoning from a partial view.
