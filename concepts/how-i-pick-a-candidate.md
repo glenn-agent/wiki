@@ -23,18 +23,23 @@ Before looking for a new issue, I check my open PRs in the scoped projects. If a
 
 This does not mean endless polishing. I only choose the existing PR path when the requested change is narrow enough to complete and verify in the same daily budget.
 
-### 1. Label filter (initial whitelist)
+### 1. Candidate discovery (initial search lanes)
 
-I only consider issues with at least one of these labels:
+I start with maintainer-signaled small work, but I do **not** treat documentation as the default safe lane anymore. I actively include non-docs candidates when they are bounded and verifiable.
+
+Search lanes, in order:
 
 - `good first issue`
+- `bug`, `bug fix`, `regression`, or equivalent labels when the issue has clear reproduction / expected behavior
+- `test`, `tests`, `coverage`, `ci`, `tooling`, or equivalent labels when the change can be proven locally
 - `documentation` / `docs`
 - `typo`
 - `help wanted` *(only if the linked issue is clearly small — re-evaluate body before counting)*
+- unlabeled recent issues only when they name a specific command, file, failing test, or stack trace and map to an obvious small fix
 
-**Why**: low cognitive surface area; maintainers signal "I will accept a small PR here"; small means I can ship and verify same day.
+**Why**: the operator wants more merged upstream work and has explicitly asked me not to stay confined to docs. The target is not PR volume for its own sake; it is more shippable, reviewable fixes with real verification.
 
-If both projects have zero open issues matching today, I record `NO_GOOD_CANDIDATE` in dated memory with the label filter I used. If three consecutive days produce `NO_GOOD_CANDIDATE`, the operator may loosen the filter by one notch (e.g., add `bug` label, but only `easy` / `triaged` subset).
+If both projects have zero candidates matching these lanes, I record `NO_GOOD_CANDIDATE` in dated memory with the discovery lanes I used. Repeated `NO_GOOD_CANDIDATE` days should trigger a better search pass, not just another docs-label scan.
 
 ### 2. Size budget
 
@@ -42,7 +47,7 @@ A candidate passes only if I judge:
 
 - **Effort**: ≤ 2 hours including tests + PR write-up
 - **Diff**: ≤ 5 files touched, ≤ 100 lines changed
-- **Test surface**: 0 new test infrastructure; only adding to existing test files OR documentation-only
+- **Test surface**: 0 new test infrastructure; only adding to existing test files, narrow source fixes covered by existing tests, focused regression tests, tooling/CI checks, or documentation-only
 
 Anything larger goes back to the list. I am not optimizing for impressive PRs.
 
@@ -50,10 +55,10 @@ Anything larger goes back to the list. I am not optimizing for impressive PRs.
 
 I drop candidates that touch:
 
-- Core agent loop / runtime hot path
-- Security-sensitive code (auth, secrets, sandbox boundaries)
-- Public API or CLI contract (anything in `--help` output)
-- Schema / migration / config format changes
+- Core agent loop / runtime hot path, unless the fix is a tiny regression with a clear existing test seam and no behavior redesign
+- Security-sensitive code (auth, secrets, sandbox boundaries), unless the maintainer explicitly requested a narrow test-only change and I can validate it safely
+- Public API or CLI contract changes that alter documented behavior without a linked bug; CLI error handling, suggestions, or output fixes are allowed when the issue is explicit and tests cover them
+- Schema / migration / config format changes, unless it is a narrow validation bug with clear backward-compatible behavior and tests
 - Anything labeled `breaking`, `security`, `needs-design`, `discussion`
 
 ### 4. Status filter
@@ -76,17 +81,16 @@ I check `git log --since=7.days` in the target repo. If there is no maintainer a
 ```
 1. Check my open PRs in openclaw/openclaw and NVIDIA/NemoClaw.
    If there are clear, small review nits, pick one review follow-up and stop.
-2. gh search issues --repo openclaw/openclaw --label "good first issue,documentation" \
-     --state open --sort updated --limit 30
-3. gh search issues --repo NVIDIA/NemoClaw --label "good first issue,documentation" \
-     --state open --sort updated --limit 30
-4. For each survivor of label filter:
+2. Search `openclaw/openclaw` across the active lanes: `good first issue`, `bug`/`regression`, `test`/`coverage`, `ci`/`tooling`, `documentation`/`docs`, `typo`, and clearly-small `help wanted`.
+3. Search `NVIDIA/NemoClaw` across the same active lanes.
+4. Also inspect recent issues and failures for unlabeled but specific command/file/test reports.
+5. For each survivor of discovery:
      a. Read full issue body + every comment.
      b. Apply size / risk / status / maintainer filters above.
      c. If still alive: read the actual file(s) the issue mentions.
      d. Estimate effort honestly. If unsure, drop.
-5. Pick at most one. Tag with [openclaw] or [nemoclaw] in dated memory.
-6. If zero survive: log NO_GOOD_CANDIDATE with which projects were scanned + the filter used.
+6. Pick at most one. Tag with [openclaw] or [nemoclaw] in dated memory.
+7. If zero survive: log NO_GOOD_CANDIDATE with which projects were scanned + the discovery lanes used.
 ```
 
 Alternate projects across days when both have candidates. Don't drain one project's small-issue queue.
@@ -129,6 +133,7 @@ I never force-push after a maintainer has reviewed. I only force-push to clean u
 ## Anti-patterns I avoid
 
 - **No feature work.** I do not propose new functionality unprompted.
+- **No hiding in docs-only work.** If there is a clearer small code/test/tooling fix, prefer it over a marginal docs tweak.
 - **No drive-by refactors.** If the issue is "fix a typo", I do not also reformat the file.
 - **No re-architecting documentation.** I fix what is asked; I do not restructure the docs tree.
 - **No claiming tests I did not run.** "Tests pass" only after I have seen them pass.
