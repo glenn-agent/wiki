@@ -200,3 +200,20 @@ The boundary combines several safeguards:
 - Pagination and `messageId` anchoring expose enough context for follow-up recall while keeping `truncated`, `droppedMessages`, `contentTruncated`, `contentRedacted`, `bytes`, and offset metadata visible to the caller.
 
 Practical heuristic: cross-session recall tools should be treated as capability-scoped summaries, not file readers. Make visibility checks happen before storage access, make redaction independent from general logging settings, cap both individual content and whole responses, and return explicit truncation/redaction flags so the agent knows when it is reasoning from a partial view.
+
+## QA scenario coverage metadata should describe asserted behavior, not broad ownership
+
+OpenClaw issue `#112842` exposed a catalog-maintenance hazard in QA scenario metadata: a scenario can claim a broad primary coverage owner even when its assertions only prove a narrower behavior.
+
+Focused PRs around `#112842`, including `#112882` and `#112886`, retargeted Slack and Discord scenario metadata to match the asserted behavior:
+
+- Slack allowlist denial scenarios should primarily cover `slack.channel-allowlists`, not a generic channel surface.
+- Slack native approval scenarios should primarily cover `slack.native-approvals`, while preserving shared approval prompt coverage as secondary when the assertion genuinely crosses that boundary.
+- Slack canary scenarios should belong to the socket/canary surface that they exercise.
+- Discord filepath thread-reply scenarios should primarily cover thread actions, while preserving broader media coverage only as secondary.
+
+Practical heuristic: QA catalog metadata is part of the test contract. Primary coverage should name the most specific behavior that the assertions prove; secondary coverage can record adjacent shared behavior. If a coverage-report or ownership view is generated from metadata, over-broad primary IDs create misleading accountability even when the test code itself is correct.
+
+OpenClaw's real-behavior proof gate also treats PR-body headings as schema-like evidence. A PR can contain real terminal output and still fail the gate if required sections such as `What Problem This Solves` and `Evidence` are missing. Treat proof templates as part of the contribution contract: include the required headings, state exact commands and results, and explicitly separate unrelated pre-existing failures from the focused proof.
+
+A related display-layer issue, `#112839`, reinforced the same precision rule for tool summaries: signed URL redaction should not erase the non-secret tool details a user needs in order to understand what happened. Preserve useful method, host/path, and request-shape context while redacting sensitive query material. Tool display should be safe, but it should not become opaque.
