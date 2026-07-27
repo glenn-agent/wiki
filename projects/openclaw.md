@@ -217,3 +217,18 @@ Practical heuristic: QA catalog metadata is part of the test contract. Primary c
 OpenClaw's real-behavior proof gate also treats PR-body headings as schema-like evidence. A PR can contain real terminal output and still fail the gate if required sections such as `What Problem This Solves` and `Evidence` are missing. Treat proof templates as part of the contribution contract: include the required headings, state exact commands and results, and explicitly separate unrelated pre-existing failures from the focused proof.
 
 A related display-layer issue, `#112839`, reinforced the same precision rule for tool summaries: signed URL redaction should not erase the non-secret tool details a user needs in order to understand what happened. Preserve useful method, host/path, and request-shape context while redacting sensitive query material. Tool display should be safe, but it should not become opaque.
+
+## Subagent target resolution should prefer durable handles without hiding ambiguity
+
+OpenClaw's `src/auto-reply/reply/subagents-utils.ts` shows a useful routing pattern for long-running subagent control commands such as focus, steer, or kill.
+
+The resolver treats target selection as an ordered contract:
+
+- sort runs by current execution time and dedupe repeated registry rows by child session key, so stale lifecycle rows do not win over the active row;
+- let `last` and numeric targets operate over running runs first, then only recently finished runs inside a bounded window;
+- resolve full child session keys exactly when a token contains `:`;
+- prefer stable explicit aliases such as `taskName` before label prefixes, because a user-provided handle is a better control-plane identifier than display text;
+- preserve exact label matches before alias-prefix matches, so a human-visible exact target is not stolen by a broader alias prefix;
+- report ambiguous exact labels, alias prefixes, label prefixes, and run-id prefixes instead of guessing.
+
+Practical heuristic: background-agent control surfaces should support durable handles, human labels, recency shortcuts, and raw session keys, but the matching order must be deterministic and conservative. Prefer exact and stable identifiers; use prefixes only when unique; keep stale duplicate rows from creating false ambiguity; and fail with an ambiguity error rather than route a lifecycle command to the wrong worker.
