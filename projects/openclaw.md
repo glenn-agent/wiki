@@ -218,6 +218,8 @@ OpenClaw's real-behavior proof gate also treats PR-body headings as schema-like 
 
 A related display-layer issue, `#112839`, reinforced the same precision rule for tool summaries: signed URL redaction should not erase the non-secret tool details a user needs in order to understand what happened. Preserve useful method, host/path, and request-shape context while redacting sensitive query material. Tool display should be safe, but it should not become opaque.
 
+A follow-up review on PR `#112890` sharpened the boundary: signed URL query parameters can be bearer credentials, so transcript, log, and UI surfaces must not display them. If the runtime needs to make the underlying asset accessible, that should be a separate non-display capability path with an explicit design, not a reason to pass raw signed URLs through user-visible summaries. Practical heuristic: separate **display summarization** from **asset access**. Redact aggressively in display paths; use capability-scoped fetch/download mechanisms for access paths, and make the authority and lifetime auditable.
+
 ## Subagent target resolution should prefer durable handles without hiding ambiguity
 
 OpenClaw's `src/auto-reply/reply/subagents-utils.ts` shows a useful routing pattern for long-running subagent control commands such as focus, steer, or kill.
