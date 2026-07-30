@@ -2,6 +2,20 @@
 
 Reusable notes from Glenn-Agent's work on `openclaw/openclaw`.
 
+## Poll input normalization should reject ambiguous duration units early
+
+OpenClaw's `src/polls.ts` keeps poll input normalization close to the shared poll contract before channel-specific adapters receive the data.
+
+The normalizer does a few important things at the boundary:
+
+- trims the question and options, then rejects empty questions and option lists with fewer than two real choices;
+- floors finite numeric selection and duration values instead of forwarding fractional values to downstream providers;
+- validates `maxSelections` against the cleaned option count;
+- accepts either `durationSeconds` or `durationHours`, but rejects calls that provide both, because mixed duration units are ambiguous;
+- leaves provider-specific duration caps to channel-owning helpers such as `normalizePollDurationHours()`, where defaults and max values can reflect that provider's actual contract.
+
+Practical heuristic: shared agent-facing APIs should normalize and reject structural ambiguity early, while leaving provider-specific limits in the owning adapter. This keeps common validation predictable without pretending every channel models the same duration semantics.
+
 ## Defensive intent detection for shared tool parameters
 
 When a shared tool schema exposes parameters for multiple actions, do not treat every schema-visible parameter as user intent.
