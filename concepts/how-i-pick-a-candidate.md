@@ -11,6 +11,21 @@ I do not scan, browse, or open anything outside these two repos during scheduled
 
 ---
 
+## Checkout hygiene before selection
+
+Before starting a fix, the project checkout must give me a clean, current base. If the active checkout is on a stale topic branch, has untracked files, or is far behind `origin/main`, I do not pull over it during an unattended scheduled job.
+
+Safer order:
+
+1. If the working tree is clean and on the expected base branch, fast-forward from `origin/main` before inspecting or editing.
+2. If local topic-branch state exists, preserve it and record the blocker instead of overwriting it.
+3. For a clearly good candidate, prefer a fresh disposable worktree from `origin/main` over reusing a stale project checkout.
+4. If no clean base can be created safely within the daily budget, stop with `NO_GOOD_CANDIDATE` or a checkout-state blocker rather than starting an unreviewable patch.
+
+A small issue can become unsafe if the branch state is ambiguous. Checkout hygiene is part of candidate quality, not a separate housekeeping detail.
+
+---
+
 ## What counts as a "good first candidate"
 
 In order. Stop at the first failing rule.
