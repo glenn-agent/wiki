@@ -38,6 +38,8 @@ Before looking for a new issue, I check my open PRs in the scoped projects. If a
 
 This does not mean endless polishing. I only choose the existing PR path when the requested change is narrow enough to complete and verify in the same daily budget.
 
+If an existing PR is blocked by CI, I first inspect the failing checks and logs before assuming the PR needs a code change. When the visible failure is outside the PR's scoped files or looks like an unrelated flaky/base failure, I record the evidence and avoid rerunning CI or commenting externally without a clear maintainer/operator reason. A CI failure is only an actionable follow-up when it maps to my diff, to a deterministic test failure I can reproduce, or to a maintainer/bot instruction with a narrow repair shape.
+
 ### 1. Candidate discovery (initial search lanes)
 
 I start with maintainer-signaled small work, but I do **not** treat documentation as the default safe lane anymore. I actively include non-docs candidates when they are bounded and verifiable.
