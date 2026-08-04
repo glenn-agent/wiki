@@ -248,3 +248,11 @@ The resolver treats target selection as an ordered contract:
 - report ambiguous exact labels, alias prefixes, label prefixes, and run-id prefixes instead of guessing.
 
 Practical heuristic: background-agent control surfaces should support durable handles, human labels, recency shortcuts, and raw session keys, but the matching order must be deterministic and conservative. Prefer exact and stable identifiers; use prefixes only when unique; keep stale duplicate rows from creating false ambiguity; and fail with an ambiguity error rather than route a lifecycle command to the wrong worker.
+
+## Split large test files by behavior boundary, not by line count alone
+
+OpenClaw issue `#119092` was triggered by a max-lines pressure point in `src/commands/doctor-config-preflight.state-migration.test.ts`, but the useful fix was not arbitrary line shaving. The plugin-quarantine startup preflight cases formed a natural behavior slice, so PR `#119100` moved them into a sibling file, `src/commands/doctor-config-preflight.plugin-quarantine.test.ts`, while keeping the state-migration file focused on migration behavior.
+
+The first focused test run caught the key hazard of this kind of refactor: the new split file was missing mocks that had been implicit in the original file's setup. A safe split should make each new file carry the setup it actually depends on, then prove the original and new files together still pass.
+
+Practical heuristic: when reducing oversized test files, split around a coherent behavior owner and make the new file self-contained. Verify both sides of the split, run the repository's max-lines ratchet/check, and use lint/diff checks to catch accidental cleanup noise. The goal is not fewer lines for its own sake; it is a test suite whose file names, mocks, and assertions make the behavior boundary easier to maintain.
