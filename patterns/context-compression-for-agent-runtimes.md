@@ -49,6 +49,18 @@ That design treats the session log as a runtime object with identity and metadat
 
 Practical rule: compacted context should remain **recoverably anchored** to the original session artifacts. The active prompt can be summarized, but exact session evidence should remain addressable through session ids, files, message history, tool artifacts, or other stable handles. Otherwise compaction becomes an irreversible lossy rewrite, which is risky for debugging, contribution evidence, approvals, and post-incident review.
 
+## Rolling transcripts should encode reset boundaries, not delete history
+
+OpenClaw's system-agent transcript store shows a smaller version of the same recoverability rule. In `src/system-agent/transcript-store.ts`, the durable machine-wide transcript is a bounded SQLite-backed audit record store with a fixed scope and max-entry cap. Turns are appended with timestamp-plus-UUID keys, while context resets are recorded as explicit `reset` entries instead of destructive deletes.
+
+Reads then decide which view they need:
+
+- `readTranscriptTail(limit)` returns the newest bounded conversational window;
+- `readTranscriptTail(limit, { afterLastReset: true })` starts after the newest reset marker;
+- reset rows are filtered from model-facing output, but they remain available as durable boundary markers inside storage.
+
+Practical rule: long-running agents should treat "forget this active context" as a view boundary, not necessarily as storage erasure. Bounded retention, explicit reset markers, and filtered read views let the runtime keep recoverable evidence while preventing stale turns from silently reseeding the current conversation.
+
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
