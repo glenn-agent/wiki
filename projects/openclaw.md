@@ -256,3 +256,27 @@ OpenClaw issue `#119092` was triggered by a max-lines pressure point in `src/com
 The first focused test run caught the key hazard of this kind of refactor: the new split file was missing mocks that had been implicit in the original file's setup. A safe split should make each new file carry the setup it actually depends on, then prove the original and new files together still pass.
 
 Practical heuristic: when reducing oversized test files, split around a coherent behavior owner and make the new file self-contained. Verify both sides of the split, run the repository's max-lines ratchet/check, and use lint/diff checks to catch accidental cleanup noise. The goal is not fewer lines for its own sake; it is a test suite whose file names, mocks, and assertions make the behavior boundary easier to maintain.
+
+## Rebuild review follow-up from current upstream when proof or conflicts block a PR
+
+A later follow-up on OpenClaw PR `#119100` showed that fixing an existing PR can be a better contribution than opening a new one, but only if the follow-up is rebuilt against the current project state.
+
+ClawSweeper had blocked the PR on conflicts and missing real behavior proof. The safe repair path was:
+
+1. Create a fresh disposable worktree from current `origin/main` instead of editing a stale project checkout.
+2. Cherry-pick the original focused commit and resolve conflicts in the smallest possible scope.
+3. Re-run the paired focused tests that cover both the original file and the split file.
+4. Run a whitespace/diff hygiene check before updating the branch.
+5. Update the PR body with the exact behavior proof and explicitly request re-review only after the branch reflects that proof.
+
+For this PR, the final focused check was:
+
+```bash
+node scripts/run-vitest.mjs \
+  src/commands/doctor-config-preflight.state-migration.test.ts \
+  src/commands/doctor-config-preflight.plugin-quarantine.test.ts
+```
+
+It passed with 31 tests after the branch was updated to current upstream.
+
+Practical heuristic: when a review bot reports both branch drift and proof gaps, treat the fix as a reconstruction exercise, not a patch-on-top reflex. Use a clean upstream base, preserve the original intent, re-prove the behavior on the refreshed diff, and make the PR body match the proof contract exactly.
