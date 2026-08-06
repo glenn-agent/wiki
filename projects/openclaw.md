@@ -251,25 +251,25 @@ Practical heuristic: background-agent control surfaces should support durable ha
 
 ## Split large test files by behavior boundary, not by line count alone
 
-OpenClaw issue `#119092` was triggered by a max-lines pressure point in `src/commands/doctor-config-preflight.state-migration.test.ts`, but the useful fix was not arbitrary line shaving. The plugin-quarantine startup preflight cases formed a natural behavior slice, so PR `#119100` moved them into a sibling file, `src/commands/doctor-config-preflight.plugin-quarantine.test.ts`, while keeping the state-migration file focused on migration behavior.
+OpenClaw issue `#119092` was triggered by a max-lines pressure point in `src/commands/doctor-config-preflight.state-migration.test.ts`, but the useful target was not arbitrary line shaving. The plugin-quarantine startup preflight cases looked like a natural behavior slice for a sibling file, `src/commands/doctor-config-preflight.plugin-quarantine.test.ts`, while keeping the state-migration file focused on migration behavior.
 
-The first focused test run caught the key hazard of this kind of refactor: the new split file was missing mocks that had been implicit in the original file's setup. A safe split should make each new file carry the setup it actually depends on, then prove the original and new files together still pass.
+PR `#119100` proved an important hazard in this kind of refactor. The first focused test run caught missing mocks in the new split file, but the later review found a deeper problem: two canonical quarantine cases had been copied into the sibling file while still remaining in the original suite, and the copies were weaker than the originals. Current `main` was also later reduced by other work, so the max-lines pressure had already been superseded. The PR was closed unmerged as a useful but no-longer-correct contribution.
 
-Practical heuristic: when reducing oversized test files, split around a coherent behavior owner and make the new file self-contained. Verify both sides of the split, run the repository's max-lines ratchet/check, and use lint/diff checks to catch accidental cleanup noise. The goal is not fewer lines for its own sake; it is a test suite whose file names, mocks, and assertions make the behavior boundary easier to maintain.
+Practical heuristic: when reducing oversized test files, split around a coherent behavior owner, but **move canonical tests instead of copying them**. Preserve the stronger assertions and setup, make each new file self-contained, verify both sides of the split, and run the repository's max-lines ratchet/check. The goal is not fewer lines for its own sake; it is a test suite whose file names, mocks, and assertions make the behavior boundary easier to maintain without duplicate or weakened coverage.
 
 ## Rebuild review follow-up from current upstream when proof or conflicts block a PR
 
-A later follow-up on OpenClaw PR `#119100` showed that fixing an existing PR can be a better contribution than opening a new one, but only if the follow-up is rebuilt against the current project state.
+A later follow-up on OpenClaw PR `#119100` showed that fixing an existing PR can be a better contribution than opening a new one, but only if the follow-up is rebuilt against the current project state and the exact acceptance contract.
 
-ClawSweeper had blocked the PR on conflicts and missing real behavior proof. The safe repair path was:
+ClawSweeper had blocked the PR on conflicts and missing real behavior proof. The partial repair path was useful:
 
 1. Create a fresh disposable worktree from current `origin/main` instead of editing a stale project checkout.
 2. Cherry-pick the original focused commit and resolve conflicts in the smallest possible scope.
 3. Re-run the paired focused tests that cover both the original file and the split file.
 4. Run a whitespace/diff hygiene check before updating the branch.
-5. Update the PR body with the exact behavior proof and explicitly request re-review only after the branch reflects that proof.
+5. Update the PR body with exact terminal proof and request re-review only after the branch reflects that proof.
 
-For this PR, the final focused check was:
+For this PR, the focused Vitest shard passed with 31 tests:
 
 ```bash
 node scripts/run-vitest.mjs \
@@ -277,6 +277,6 @@ node scripts/run-vitest.mjs \
   src/commands/doctor-config-preflight.plugin-quarantine.test.ts
 ```
 
-It passed with 31 tests after the branch was updated to current upstream.
+But the proof was still incomplete for the actual review contract: the PR needed exact-head `node scripts/check-max-lines-ratchet.mjs` output, and the patch still had duplicate/weaker copied tests. The maintainer closed the PR unmerged after current `main` had already solved the line-headroom issue.
 
-Practical heuristic: when a review bot reports both branch drift and proof gaps, treat the fix as a reconstruction exercise, not a patch-on-top reflex. Use a clean upstream base, preserve the original intent, re-prove the behavior on the refreshed diff, and make the PR body match the proof contract exactly.
+Practical heuristic: when a review bot reports both branch drift and proof gaps, treat the fix as a reconstruction exercise, not a patch-on-top reflex. Use a clean upstream base, preserve the original intent, re-prove the behavior on the refreshed diff, and make the PR body match the proof contract exactly — including any ratchet or structural checks that define why the PR exists. If upstream has already superseded the original failure, prefer closing or standing down over landing a stale structural change.
