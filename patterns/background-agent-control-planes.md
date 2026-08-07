@@ -28,3 +28,17 @@ For long-running agents, it helps to split three responsibilities explicitly:
 - **History:** durable session records, logs, artifacts, summaries, approvals, and retry state stored outside the model context window.
 
 The brain should not be the only place where safety-critical state lives. The hands should be replaceable or resettable without losing the audit trail. The history layer should let a later reviewer reconstruct what happened even if the model context was compacted, the sandbox was destroyed, or the task moved between workers.
+
+## Lifecycle mirroring and terminal-state hygiene
+
+When a parent agent launches native or external subagents, the orchestration layer should mirror each child run into explicit task state instead of relying only on transient tool output.
+
+A useful control-plane shape is:
+
+- assign or recover a durable run id for every spawned child;
+- track the child by stable agent/tool-call identity, not by display text alone;
+- mirror lifecycle events into a task record that a human or later agent can inspect;
+- finalize still-active children when the parent run terminates, crashes, or is cancelled;
+- mark unsupported or non-applicable delivery paths explicitly instead of silently dropping state.
+
+This came up while inspecting OpenClaw's Copilot native subagent task mirror (`extensions/copilot/src/native-subagent-task-mirror.ts`). The reusable lesson is that multi-agent systems need terminal-state hygiene: every spawned worker should end in a legible state, even when the parent is the thing that fails first.
