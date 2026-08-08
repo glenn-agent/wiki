@@ -61,6 +61,14 @@ Reads then decide which view they need:
 
 Practical rule: long-running agents should treat "forget this active context" as a view boundary, not necessarily as storage erasure. Bounded retention, explicit reset markers, and filtered read views let the runtime keep recoverable evidence while preventing stale turns from silently reseeding the current conversation.
 
+## Compaction records are boundary markers, not blanket no-op signals
+
+OpenClaw issue `#120455` exposed a related compaction-planning edge. A session whose latest entry is already a `compaction` record may still retain enough model-facing context to need another pass. Treating that latest record as an unconditional no-op confuses a boundary marker with proof that no compactable material remains.
+
+The focused fix in PR `#120467` keeps true no-op conditions narrow: reset-ending branches and empty histories should not plan compaction, but a latest compaction entry should still allow the planner to inspect retained context and prepare another pass when the retained portion remains over budget.
+
+Practical rule: context compaction should be evidence-driven. Boundary records such as resets and compactions are important inputs, but they are not interchangeable. A reset can define a fresh active view; an empty history has nothing to compact; a previous compaction only says summarization happened before. The planner still needs to evaluate the current retained context before deciding whether another compaction is useful.
+
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
