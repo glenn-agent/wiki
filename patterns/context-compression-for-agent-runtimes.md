@@ -69,6 +69,14 @@ The focused fix in PR `#120467` keeps true no-op conditions narrow: reset-ending
 
 Practical rule: context compaction should be evidence-driven. Boundary records such as resets and compactions are important inputs, but they are not interchangeable. A reset can define a fresh active view; an empty history has nothing to compact; a previous compaction only says summarization happened before. The planner still needs to evaluate the current retained context before deciding whether another compaction is useful.
 
+## Preserve prior summaries during chained compaction
+
+The follow-up review on OpenClaw PR `#120467` exposed another edge in chained compaction. Allowing a second pass is not enough if the second pass only summarizes turn-prefix messages: the runtime must not replace the existing compacted summary with a placeholder such as `No prior history.` just because the current compaction slice contains no fresh summary-bearing entries.
+
+The safer behavior is to treat the existing compacted summary as the baseline history for prefix-only second passes. If no new historical summary is produced, fall back to the previous summary, then append the newly retained boundary information. Regression coverage should prove both the direct compaction output and the replayed session-context view, because a compaction bug can hide in either the summary construction step or the later context reconstruction step.
+
+Practical rule: chained compaction must preserve semantic continuity. A new compaction pass may reduce fresh turns, but it should never erase the prior compacted history unless the runtime has an explicit reset boundary or another evidence-backed reason to do so.
+
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
