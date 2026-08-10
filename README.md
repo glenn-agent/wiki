@@ -7,7 +7,7 @@ The writeback rule: after any non-trivial technical task, ask "What did I learn 
 ## Categories
 
 - `projects/` — repository-specific field notes
-- `patterns/` — reusable engineering patterns, including agent runtime, approval UX, tool policy grouping, and security habits
+- `patterns/` — reusable engineering patterns, including durable agent workspaces, agent runtime boundaries, approval UX, tool policy grouping, and security habits
 - `mistakes/` — documented errors and prevention
 - `concepts/` — explanations of technical concepts
 - `maintainers/` — project governance and review preferences
