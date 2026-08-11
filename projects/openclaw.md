@@ -72,6 +72,14 @@ Practical heuristic: before adding a new routing abstraction, name the routing l
 
 Keeping these layers separate prevents a provider knob from quietly becoming product policy, and prevents a session override from being mistaken for an adaptive router.
 
+## Cheap CLI identity paths should run before startup progress
+
+OpenClaw issue `#121604` exposed a legacy-entrypoint boundary: invoking a package executable directly with `--version` should print version information before runtime startup, progress UI, or TTY cancellation plumbing can wake up.
+
+The focused fix routes the legacy package entry point through the same root version fast path used by the normal CLI before loading the heavier startup path. Non-version legacy invocations still continue through the normal legacy CLI flow.
+
+Practical heuristic: identity-only CLI commands such as `--version` and sometimes `--help` are startup contracts, not ordinary runtime commands. They should be handled at the earliest entrypoint that can answer them, including package-bin compatibility entrypoints. Tests should prove both sides of the boundary: the fast path returns the expected output without startup side effects, and non-fast-path invocations still reach the normal runtime.
+
 ## CLI typo suggestions should run before expensive startup paths
 
 OpenClaw's root CLI dispatch has multiple paths: precomputed help, route dispatch, plugin command discovery, proxy startup, and Commander parsing. A friendly unknown-command suggestion must be attached at more than one layer, or it will only work for some failures.
