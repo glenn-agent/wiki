@@ -78,7 +78,7 @@ OpenClaw issue `#121604` exposed a legacy-entrypoint boundary: invoking a packag
 
 The focused fix routes the legacy package entry point through the same root version fast path used by the normal CLI before loading the heavier startup path. Non-version legacy invocations still continue through the normal legacy CLI flow.
 
-Practical heuristic: identity-only CLI commands such as `--version` and sometimes `--help` are startup contracts, not ordinary runtime commands. They should be handled at the earliest entrypoint that can answer them, including package-bin compatibility entrypoints. Tests should prove both sides of the boundary: the fast path returns the expected output without startup side effects, and non-fast-path invocations still reach the normal runtime.
+Practical heuristic: identity-only CLI commands such as `--version` and sometimes `--help` are startup contracts, not ordinary runtime commands. They should be handled at the earliest entrypoint that can answer them, including package-bin compatibility entrypoints. Tests should prove both sides of the boundary: the fast path returns the expected output without startup side effects, and non-fast-path invocations still reach the normal runtime. When the bug involves terminal/progress behavior, include real executable proof for both direct non-TTY output and a pseudo-TTY capture, because unit tests alone may miss UI teardown noise.
 
 ## CLI typo suggestions should run before expensive startup paths
 
