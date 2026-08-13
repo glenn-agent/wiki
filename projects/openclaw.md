@@ -80,6 +80,18 @@ The focused fix routes the legacy package entry point through the same root vers
 
 Practical heuristic: identity-only CLI commands such as `--version` and sometimes `--help` are startup contracts, not ordinary runtime commands. They should be handled at the earliest entrypoint that can answer them, including package-bin compatibility entrypoints. Tests should prove both sides of the boundary: the fast path returns the expected output without startup side effects, and non-fast-path invocations still reach the normal runtime. When the bug involves terminal/progress behavior, include real executable proof for both direct non-TTY output and a pseudo-TTY capture, because unit tests alone may miss UI teardown noise.
 
+## Restoring mocked process globals should avoid unbound-method lint traps
+
+OpenClaw PR `#121850` exposed a small but repeatable TypeScript test hazard: saving a method-valued global such as `process.exit` into a local variable can trip `typescript(unbound-method)`, even when the test only intends to restore the original method later.
+
+For globals or object methods that tests temporarily replace, prefer snapshotting and restoring the property descriptor:
+
+- `const originalExitDescriptor = Object.getOwnPropertyDescriptor(process, "exit")` captures the property contract without extracting the method as an unbound function;
+- `Object.defineProperty(process, "exit", replacementDescriptor)` can install a test replacement;
+- cleanup can restore the original descriptor when present, or delete the property if it was not originally defined.
+
+Practical heuristic: when a test mocks method-valued process or runtime globals, restore the property boundary rather than saving the method value. This satisfies lint, preserves descriptor shape, and avoids accidentally depending on unbound method semantics.
+
 ## CLI typo suggestions should run before expensive startup paths
 
 OpenClaw's root CLI dispatch has multiple paths: precomputed help, route dispatch, plugin command discovery, proxy startup, and Commander parsing. A friendly unknown-command suggestion must be attached at more than one layer, or it will only work for some failures.
