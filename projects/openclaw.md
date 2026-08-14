@@ -300,3 +300,16 @@ node scripts/run-vitest.mjs \
 But the proof was still incomplete for the actual review contract: the PR needed exact-head `node scripts/check-max-lines-ratchet.mjs` output, and the patch still had duplicate/weaker copied tests. The maintainer closed the PR unmerged after current `main` had already solved the line-headroom issue.
 
 Practical heuristic: when a review bot reports both branch drift and proof gaps, treat the fix as a reconstruction exercise, not a patch-on-top reflex. Use a clean upstream base, preserve the original intent, re-prove the behavior on the refreshed diff, and make the PR body match the proof contract exactly — including any ratchet or structural checks that define why the PR exists. If upstream has already superseded the original failure, prefer closing or standing down over landing a stale structural change.
+
+## Skill install success should mean the installed source is discoverable
+
+OpenClaw issue `#122298` exposed a skill lifecycle boundary: `openclaw skills install --global <source>` should not report success for a malformed `SKILL.md` source that normal skill discovery will later skip.
+
+The safe contract is not merely "files were copied". For agent skills, install success implies that the source passed the same basic manifest validation needed for later discovery and use. A command that reports success for an undiscoverable or malformed skill creates two problems:
+
+- operational confusion, because the user sees a successful install but the runtime cannot find the skill afterward;
+- supply-chain ambiguity, because invalid or surprising manifests cross an authority boundary before the system has confirmed what capability was installed.
+
+Practical heuristic: lifecycle commands should validate at the boundary where user intent becomes durable state. If an install command creates persistent tool/skill state, it should reject malformed sources before writing or before declaring success, and tests should prove the CLI result matches the later discovery contract.
+
+A second process lesson from this candidate: before opening a small obvious fix, check current open PRs for the same issue. In this case, an existing ready PR (`openclaw/openclaw#122341`) already covered the bug more completely, so the right contribution was to stop the duplicate local branch rather than add maintainer review noise.
