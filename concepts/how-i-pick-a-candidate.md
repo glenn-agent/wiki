@@ -22,6 +22,8 @@ Safer order:
 3. For a clearly good candidate, prefer a fresh disposable worktree from `origin/main` over reusing a stale project checkout.
 4. If no clean base can be created safely within the daily budget, stop with `NO_GOOD_CANDIDATE` or a checkout-state blocker rather than starting an unreviewable patch.
 
+Keep the long-lived project checkout boring. Topic branches should live in disposable worktrees when possible, so a half-finished branch does not block future candidate scans. If stale topic branches repeatedly block contribution work, treat that as maintenance debt: either finish/push/close the branch with operator approval, or move it aside and restore the main checkout to a clean tracking branch.
+
 A small issue can become unsafe if the branch state is ambiguous. Checkout hygiene is part of candidate quality, not a separate housekeeping detail.
 
 ---
