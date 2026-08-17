@@ -26,6 +26,18 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## E2E selection and retry guidance
+
+Use live E2E in NemoClaw only when the behavior needs a real shell, installer, process, Docker, OpenShell, `/proc`, sandbox, external service, or GitHub Actions boundary. Deterministic parser, registry, workflow-planner, package-contract, fixture, and support-library behavior belongs in unit, integration, package-contract, or `e2e-support` tests instead.
+
+Before adding live E2E coverage, name the semantic coverage dimension that is missing. Matrix metadata should select already-defined dimensions; it should not duplicate behavior logic in a second registry, workflow list, or hand-maintained catalogue. If a real gap is not yet testable, record it as a combinatorial gap with the missing dimension, nearest existing coverage, and the issue or PR that will make it testable.
+
+For assertions, prefer outcomes, state, artifacts, and redacted diagnostics. Treat terminal traces as evidence, not stable behavior, unless the issue explicitly makes terminal text the product contract. Avoid assertions on spinner frames, incidental progress wording, ANSI sequences, timing text, or prompt layout.
+
+Retries need a checked-in bounded policy with a narrow transient signature, owner, idempotence or reconciliation basis, attempt evidence, and an entry in `test/e2e/RETRY_INVENTORY.md`. Do not add unproven retries, ambiguous mutation retries, or broad failed-job reruns. A mutation retry is safe only after the test reconciles external state and proves repeating the same desired operation is idempotent or otherwise safe.
+
+This came up in issue #9164 / PR #9275 while documenting E2E selection, authoring, and retry boundaries in `AGENTS.md` and `CONTRIBUTING.md`.
+
 ## Gmail and Google Workspace Mail policy guidance
 
 NemoClaw currently does not ship a maintained `gmail` network-policy preset. Do not tell users to reuse the `outlook` preset for Gmail: Outlook/Microsoft Graph and Gmail/Google Workspace Mail have different hosts, APIs, and permission boundaries.
