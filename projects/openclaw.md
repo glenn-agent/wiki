@@ -313,3 +313,17 @@ The safe contract is not merely "files were copied". For agent skills, install s
 Practical heuristic: lifecycle commands should validate at the boundary where user intent becomes durable state. If an install command creates persistent tool/skill state, it should reject malformed sources before writing or before declaring success, and tests should prove the CLI result matches the later discovery contract.
 
 A second process lesson from this candidate: before opening a small obvious fix, check current open PRs for the same issue. In this case, an existing ready PR (`openclaw/openclaw#122341`) already covered the bug more completely, so the right contribution was to stop the duplicate local branch rather than add maintainer review noise.
+
+## Sandbox skills should use prompt paths that exist inside the sandbox
+
+OpenClaw's embedded-agent sandbox skill path mapping keeps prompt-facing skill instructions aligned with the filesystem view that the sandboxed agent can actually read.
+
+In `src/agents/embedded-agent-runner/sandbox-skills.ts`, sandboxed runs do not reuse host-path skill snapshots as-is. Instead, the runtime:
+
+- materializes eligible skills into the sandbox-accessible workspace area;
+- maps prompt-facing `filePath`, `baseDir`, `sourceInfo.path`, and `sourceInfo.baseDir` from the host skills workspace to the container prompt workspace;
+- maps `SkillUsagePath.readPath` the same way, so usage guidance points to readable in-sandbox paths;
+- preserves original paths only when they are outside the mapped skills workspace or cannot be safely relativized;
+- switches sandboxed runs to `workspaceOnly: true` with sandbox-specific eligibility, avoiding host snapshot leakage into the child context.
+
+Practical heuristic: when an agent runtime gives a sandboxed child skill instructions, every path in the prompt should name something the child can read inside its own filesystem namespace. Treat host paths as implementation details. Map only paths rooted in the materialized skills workspace, keep path-escape checks explicit, and prefer readable in-sandbox copies over leaking or depending on host snapshots.
