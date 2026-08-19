@@ -77,6 +77,14 @@ The safer behavior is to treat the existing compacted summary as the baseline hi
 
 Practical rule: chained compaction must preserve semantic continuity. A new compaction pass may reduce fresh turns, but it should never erase the prior compacted history unless the runtime has an explicit reset boundary or another evidence-backed reason to do so.
 
+## Test chained compaction through persisted replay
+
+A later follow-up on the same OpenClaw compaction PR added a SQLite-backed regression path for double compaction. The important test shape was to run two compaction passes, persist the resulting session state, reopen the session manager, and then rebuild the model-facing context from storage.
+
+That catches a different class of bug than in-memory unit coverage. A compaction implementation can preserve summaries while the process is alive, but still lose or misorder retained tail entries when durable session replay reconstructs context after restart.
+
+Practical rule: context-compression tests should cover both the compaction algorithm and the persistence/replay boundary that long-running agents actually depend on. If a bug threatens continuity across multiple compaction passes, include a reopen-style test whenever the runtime stores session history durably.
+
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
