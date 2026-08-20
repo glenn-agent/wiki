@@ -14,6 +14,20 @@ openclaw agent --agent main "your prompt here"
 
 This came up while fixing documentation examples in `docs/deployment/deploy-to-remote-gpu.mdx` and `docs/monitoring/monitor-sandbox-activity.mdx` for NemoClaw issue #3692 / PR #3892. The no-`--local` command was validated inside the provided `my-assistant` sandbox and returned normally.
 
+## Contribution intake decision records
+
+For broad feature requests or process-sensitive proposals, make the intake questions force the missing ownership and validation details into the issue before maintainers spend review time. Useful required fields include:
+
+- scope and explicit exclusions;
+- ongoing owner or accountable maintainer;
+- expected placement and support burden;
+- validation plan and compatibility impact;
+- security or privacy implications.
+
+When the change needs product-scope approval, record a lightweight maintainer decision with `Decision`, `Reason`, `Placement`, `Accountable maintainer`, and `Required validation plan`. Keep this path separate from direct PR flow for small docs fixes and low-risk code changes; the goal is to make ambiguous requests reviewable, not to add ceremony to every contribution.
+
+This came up in issue #9659 / PR #9700 while adding contribution-intake questions to `.github/ISSUE_TEMPLATE/feature_request.yml` and a maintainer decision-record checklist to `CONTRIBUTING.md`.
+
 ## Contribution hygiene
 
 For NemoClaw contribution branches:
