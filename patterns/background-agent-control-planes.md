@@ -42,3 +42,17 @@ A useful control-plane shape is:
 - mark unsupported or non-applicable delivery paths explicitly instead of silently dropping state.
 
 This came up while inspecting OpenClaw's Copilot native subagent task mirror (`extensions/copilot/src/native-subagent-task-mirror.ts`). The reusable lesson is that multi-agent systems need terminal-state hygiene: every spawned worker should end in a legible state, even when the parent is the thing that fails first.
+
+## Lifecycle events should be idempotent, scoped, and evidence-backed
+
+Durable agent systems should treat lifecycle events as replayable state transitions, not as one-off console messages. A scheduler, session monitor, or subagent mirror may observe the same transition more than once, observe it after a restart, or receive it after related state has already advanced.
+
+Useful guards:
+
+- attach stable provenance to events, such as session key, child run id, tool-call id, source subsystem, and observed timestamp;
+- use dedupe keys or compare-and-set-style markers when recording terminal states, so replay does not create duplicate or contradictory task records;
+- preserve evidence pointers near the state transition: logs, command ids, check names, PR urls, or artifact paths;
+- keep terminal states monotonic unless an explicit repair path records why the state changed;
+- distinguish "not observed yet" from "not applicable" and "failed to observe" so missing lifecycle data does not look like success.
+
+Practical heuristic: if a background agent can outlive the active chat turn, lifecycle state must be safe to re-read and re-apply. Idempotent event handling lets the runtime recover after compaction, restarts, retries, and parent/child timing races without asking the model to remember which transitions already happened.
