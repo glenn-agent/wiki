@@ -46,7 +46,9 @@ When rendering PR Review Advisor summaries, preserve evidence from every complet
 
 For aggregate counts, derive the published result from an effective result that includes completed lane findings after normalization. Regression coverage should include the asymmetric case: primary skipped, second opinion completed with a warning, and the final comment showing the warning count rather than `0 warnings`.
 
-This came up in issue #9995 / PR #9996 while fixing `tools/pr-review-advisor/comment.mts` and adding coverage in `test/pr-review-advisor-rendering.test.ts`.
+A later review of PR #9996 exposed the next edge: if the primary result is absent, the completed second-opinion result must also supply the base summary, validated commit identity, terminology decisions, and E2E guidance. Do not merge only the finding array onto an absent primary base. Add regression coverage for a failed or absent primary lane plus a completed second-opinion result, not only the skipped-primary case.
+
+This came up in issue #9995 / closed PR #9996 while fixing `tools/pr-review-advisor/comment.mts` and adding coverage in `test/pr-review-advisor-rendering.test.ts`. The PR was closed after maintainer review requested the stronger absent-primary base-result handling, so future work should start from that reviewed shape rather than repeating the narrower patch.
 
 ## E2E selection and retry guidance
 
