@@ -40,6 +40,14 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## PR Review Advisor aggregates
+
+When rendering PR Review Advisor summaries, preserve evidence from every completed review lane. A skipped or incomplete primary lane should not erase validated findings from a completed second-opinion lane.
+
+For aggregate counts, derive the published result from an effective result that includes completed lane findings after normalization. Regression coverage should include the asymmetric case: primary skipped, second opinion completed with a warning, and the final comment showing the warning count rather than `0 warnings`.
+
+This came up in issue #9995 / PR #9996 while fixing `tools/pr-review-advisor/comment.mts` and adding coverage in `test/pr-review-advisor-rendering.test.ts`.
+
 ## E2E selection and retry guidance
 
 Use live E2E in NemoClaw only when the behavior needs a real shell, installer, process, Docker, OpenShell, `/proc`, sandbox, external service, or GitHub Actions boundary. Deterministic parser, registry, workflow-planner, package-contract, fixture, and support-library behavior belongs in unit, integration, package-contract, or `e2e-support` tests instead.
