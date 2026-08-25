@@ -106,6 +106,8 @@ npm run docs:check-agent-variants
 
 This came up in PR #5460 while fixing stale command-reference links and examples. Running only `docs:strict` can miss a generated-variant mismatch; running the sync/check pair keeps the generated Hermes/OpenClaw references consistent with the source page before the PR is pushed.
 
+In a fresh disposable worktree, `docs:check-agent-variants` may fail simply because ignored generated outputs under `docs/_build` are absent. Run `npm run docs:sync-agent-variants` in that worktree first, then rerun the check. If no tracked generated files change, keep the PR focused on the source MDX instead of committing local generated noise. This came up again in issue #10085 / PR #10206 while fixing a `config get --key` example in `docs/reference/commands.mdx`.
+
 ## Fern route links vs source-file paths
 
 Do not "fix" NemoClaw docs links by converting published documentation routes into raw source-file paths just because a local/static checker resolves files that way.
