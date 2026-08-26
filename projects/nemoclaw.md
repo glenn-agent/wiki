@@ -108,6 +108,15 @@ This came up in PR #5460 while fixing stale command-reference links and examples
 
 In a fresh disposable worktree, `docs:check-agent-variants` may fail simply because ignored generated outputs under `docs/_build` are absent. Run `npm run docs:sync-agent-variants` in that worktree first, then rerun the check. If no tracked generated files change, keep the PR focused on the source MDX instead of committing local generated noise. This came up again in issue #10085 / PR #10206 while fixing a `config get --key` example in `docs/reference/commands.mdx`.
 
+When a command-reference example is wrong, inspect the full example source surface before opening a narrow docs PR:
+
+- the reported MDX/reference page;
+- generated agent-variant outputs and their source inputs;
+- CLI help text or shared command examples in `src/commands/...`;
+- any generator that may re-emit the same stale key or syntax.
+
+PR #10206 was closed as superseded by #10137 because the merged replacement fixed both the generated reference examples and the CLI help path. Practical heuristic: if the same command appears in generated docs and CLI help, a source-page-only patch may be correct but incomplete.
+
 ## Fern route links vs source-file paths
 
 Do not "fix" NemoClaw docs links by converting published documentation routes into raw source-file paths just because a local/static checker resolves files that way.
