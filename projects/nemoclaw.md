@@ -40,6 +40,16 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+## Blueprint run-directory errors
+
+When a blueprint command loads a named run directory, keep `not found` separate from `found but unreadable`.
+
+A missing run directory is a normal lookup result and can produce a concise user-facing message such as `Run <id> not found.`. Other filesystem failures should preserve the underlying cause so users do not chase the wrong remediation. For rollback and reconcile flows, an unreadable directory should report that the run directory could not be read, with the original error detail when available.
+
+Practical heuristic: only map `ENOENT` to a missing-resource message. Treat `EACCES`, `EPERM`, malformed directory state, and unexpected `stat`/`readdir` failures as read or state errors. Regression coverage should include a non-`ENOENT` failure so future cleanup does not collapse all filesystem errors into "missing" again.
+
+This came up in issue #10430 while preparing branch `fix/run-dir-error-kind`, where `blueprint rollback` and `blueprint reconcile` needed to distinguish an absent run from an inaccessible run directory.
+
 ## PR Review Advisor aggregates
 
 When rendering PR Review Advisor summaries, preserve evidence from every completed review lane. A skipped or incomplete primary lane should not erase validated findings from a completed second-opinion lane.
