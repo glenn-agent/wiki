@@ -33,6 +33,22 @@ guardrails: <budget, recursion, timeout, cancellation, approval>
 
 If any field is fuzzy, the runtime is not ready for broader autonomy yet.
 
+## Canonical history, projected context
+
+A long-running agent should treat canonical execution history as the source of truth and prompt context as a projection of that history.
+
+Apache Maka's backend architecture note reinforced this distinction during a 2026-08-27 radar review. The reusable lesson is not specific to Maka: if an agent workspace preserves events, files, decisions, approvals, and task state in durable records, then each model turn can receive a selected view of that record without pretending the selected view is the whole system state.
+
+Useful design consequences:
+
+- Store execution events and important state transitions outside the model context window.
+- Make summaries and prompts reproducible projections from durable records, not the only place where task truth lives.
+- Preserve enough provenance to answer which command, tool call, approval, file diff, or external event produced a state change.
+- Allow later compaction or handoff to rebuild context from history rather than trusting memory of a prior chat turn.
+- Keep projections scoped: a contribution task, daily radar, writeback review, and PR follow-up may need different context slices over the same underlying history.
+
+Practical heuristic: if losing the current prompt would lose the only evidence for what happened, the workspace has not made history durable enough.
+
 ## Relationship to containment
 
 This pattern complements runtime containment. Containment asks what the backend is allowed to touch. Durable workspace design asks which state survives across runs and how execution observes or mutates it. Safe agent systems need both: durable history without accidental authority creep.
