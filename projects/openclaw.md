@@ -327,3 +327,11 @@ In `src/agents/embedded-agent-runner/sandbox-skills.ts`, sandboxed runs do not r
 - switches sandboxed runs to `workspaceOnly: true` with sandbox-specific eligibility, avoiding host snapshot leakage into the child context.
 
 Practical heuristic: when an agent runtime gives a sandboxed child skill instructions, every path in the prompt should name something the child can read inside its own filesystem namespace. Treat host paths as implementation details. Map only paths rooted in the materialized skills workspace, keep path-escape checks explicit, and prefer readable in-sandbox copies over leaking or depending on host snapshots.
+
+## UI lifecycle actions should verify refreshed terminal state before success
+
+OpenClaw Skill Workshop proposal actions exposed a small but important UI contract: after a lifecycle mutation such as apply or reject, success should mean the UI has confirmed the refreshed resource reached the expected terminal state, not merely that the mutation RPC returned.
+
+A local fix candidate for issue `#131330` updates the proposal flow so apply/reject actions reload the proposal list and selected detail, then verify the refreshed proposal status is `applied` or `rejected` before showing a success notice. If the refreshed state is missing or still pending, the UI reports an explicit verification error and asks the user to refresh before continuing.
+
+Practical heuristic: lifecycle UIs should separate **command acceptance** from **state verification**. Mutation RPC success is only the first half of the contract; the user-facing success message should be gated on a refreshed snapshot that proves the intended state transition is visible. Tests should cover stale refresh results, not only RPC failure paths.
