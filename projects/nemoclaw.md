@@ -280,3 +280,11 @@ NODE_PATH=/path/to/nemoclaw/upstream/node_modules \
   PATH=/path/to/nemoclaw/upstream/node_modules/.bin:$PATH \
   npm run docs
 ```
+
+## Platform-scoped advisory wording
+
+When a NemoClaw advisory can fire on more than one host platform, keep the user-facing reason scoped to the actual predicate rather than an assumed operating system.
+
+For example, a `headless_remote_hint` advisory driven by `isHeadlessLikely` can appear on macOS as well as Linux. If the remediation text says `Headless Linux hosts...`, macOS users get a misleading diagnosis even though the check itself is behaving correctly. Prefer platform-neutral wording unless the condition explicitly gates on that platform, and add a regression test for at least one non-default platform when the bug report is cross-platform wording drift.
+
+This came up in issue #10734 while preparing branch `fix/10734-headless-hint`, where the fix changed the reason to `Headless hosts often need explicit remote UI handling if you want browser access.` and covered the macOS host-assessment case.
