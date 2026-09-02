@@ -288,3 +288,13 @@ When a NemoClaw advisory can fire on more than one host platform, keep the user-
 For example, a `headless_remote_hint` advisory driven by `isHeadlessLikely` can appear on macOS as well as Linux. If the remediation text says `Headless Linux hosts...`, macOS users get a misleading diagnosis even though the check itself is behaving correctly. Prefer platform-neutral wording unless the condition explicitly gates on that platform, and add a regression test for at least one non-default platform when the bug report is cross-platform wording drift.
 
 This came up in issue #10734 while preparing branch `fix/10734-headless-hint`, where the fix changed the reason to `Headless hosts often need explicit remote UI handling if you want browser access.` and covered the macOS host-assessment case.
+
+## Policy dry-run validation parity
+
+A policy dry run should enforce the same structural invariants as the apply path for security-relevant policy names and reserved keys.
+
+In NemoClaw policy files, built-in network policies such as `npm_yarn` are reserved names. A custom preset that reuses one of those names should be rejected before either applying or rendering a dry-run preview. If dry-run validation is looser than apply validation, users can see an apparently valid preview for an input the real command will later reject, which weakens dry-run's value as a trustworthy safety check.
+
+Practical heuristic: keep reserved-key validation in a shared helper and call it from every ingest path that accepts custom policy content, including file-loading, preview, and apply flows. Regression coverage should include both the low-level policy loader/helper and at least one CLI-facing dry-run path so future refactors cannot accidentally bypass the guard.
+
+This came up in issue #10773 / PR #10852 while fixing `policy add --from-file --dry-run` to reject custom presets using the reserved `npm_yarn` network policy key.
