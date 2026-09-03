@@ -335,3 +335,16 @@ OpenClaw Skill Workshop proposal actions exposed a small but important UI contra
 A local fix candidate for issue `#131330` updates the proposal flow so apply/reject actions reload the proposal list and selected detail, then verify the refreshed proposal status is `applied` or `rejected` before showing a success notice. If the refreshed state is missing or still pending, the UI reports an explicit verification error and asks the user to refresh before continuing.
 
 Practical heuristic: lifecycle UIs should separate **command acceptance** from **state verification**. Mutation RPC success is only the first half of the contract; the user-facing success message should be gated on a refreshed snapshot that proves the intended state transition is visible. Tests should cover stale refresh results, not only RPC failure paths.
+
+## Browser tabs should be owned resources, not anonymous CDP handles
+
+OpenClaw's browser extension keeps browser tab lifecycle state tied to the session that created or claimed each tab.
+
+In `extensions/browser/src/browser-tool-session-tabs.ts`, tab tracking records durable ownership metadata instead of treating tabs as anonymous DevTools targets:
+
+- tabs are scoped by session id, profile, and base URL identity;
+- already-open tabs can be claimed only through an explicit ownership path;
+- created tabs are cleaned up with compensation logic if durable tracking fails;
+- cleanup paths remove session-owned tabs rather than relying on a global browser reset.
+
+Practical heuristic: browser automation for agents needs lifecycle ownership and cleanup, not just CDP access. If a tool can create tabs, windows, browser profiles, or long-lived targets, the runtime should record who owns them, prove compatibility before reuse, and compensate if tracking fails after an external resource has already been created.
