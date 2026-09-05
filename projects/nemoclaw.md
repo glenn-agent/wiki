@@ -298,3 +298,17 @@ In NemoClaw policy files, built-in network policies such as `npm_yarn` are reser
 Practical heuristic: keep reserved-key validation in a shared helper and call it from every ingest path that accepts custom policy content, including file-loading, preview, and apply flows. Regression coverage should include both the low-level policy loader/helper and at least one CLI-facing dry-run path so future refactors cannot accidentally bypass the guard.
 
 This came up in issue #10773 / PR #10852 while fixing `policy add --from-file --dry-run` to reject custom presets using the reserved `npm_yarn` network policy key.
+
+## Local Ollama timeout diagnostics
+
+For NemoClaw's local Ollama provider checks, distinguish a probe timeout from a generic connection failure.
+
+A curl timeout (`curl` status `28`) often means the local service may exist but is stuck behind stale runner state, GPU-memory pressure, or a slow/hung backend. In that case, user-facing recovery guidance should mention restarting Ollama, for example:
+
+```bash
+sudo systemctl restart ollama
+```
+
+Do not show the restart hint for generic connection failures where Ollama is simply not listening or not installed; those should keep the normal "start Ollama" guidance. Regression coverage should include both paths so future refactors do not collapse timeout-specific advice into generic startup advice.
+
+This came up in issue #10674 / PR #11099 while fixing `src/lib/inference/local.ts` and adding coverage in `src/lib/inference/local.test.ts`.
