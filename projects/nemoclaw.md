@@ -40,20 +40,6 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
-## Local Ollama timeout diagnostics
-
-For local Ollama health checks, distinguish a timeout from a generic connection failure.
-
-A generic connection failure usually means the service is not listening or is not reachable, so start-Ollama guidance is appropriate. A curl timeout (`curlStatus === 28`) can mean Ollama is already running but stuck behind stale runner or GPU-memory state. In that case, the more useful recovery hint is to restart the service:
-
-```bash
-sudo systemctl restart ollama
-```
-
-Keep the restart hint off non-timeout connection failures so diagnostics do not over-prescribe service restarts. Regression coverage should include both the timeout case and the ordinary connection-failure negative case.
-
-This came up in issue #10674 / PR #11099 while updating `src/lib/inference/local.ts` and `src/lib/inference/local.test.ts`.
-
 ## Blueprint run-directory errors
 
 When a blueprint command loads a named run directory, keep `not found` separate from `found but unreadable`.
