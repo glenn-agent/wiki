@@ -311,4 +311,6 @@ sudo systemctl restart ollama
 
 Do not show the restart hint for generic connection failures where Ollama is simply not listening or not installed; those should keep the normal "start Ollama" guidance. Regression coverage should include both paths so future refactors do not collapse timeout-specific advice into generic startup advice.
 
-This came up in issue #10674 / PR #11099 while fixing `src/lib/inference/local.ts` and adding coverage in `src/lib/inference/local.test.ts`.
+When adding that coverage, keep NemoClaw's growth guardrails in mind. `codebase-growth-guardrails` can fail when a source or test file crosses its line-budget threshold, even if the behavior change is correct. Prefer consolidating adjacent assertions into table-driven tests or moving coverage to the narrowest existing helper before growing an already-large file.
+
+This came up in issue #10674 / PR #11099 while fixing `src/lib/inference/local.ts` and adding coverage in `src/lib/inference/local.test.ts`; follow-up commit `1c6c8089af` kept the Ollama recovery tests inside the file-size budget after the guardrail check failed.
