@@ -313,4 +313,6 @@ Do not show the restart hint for generic connection failures where Ollama is sim
 
 When adding that coverage, keep NemoClaw's growth guardrails in mind. `codebase-growth-guardrails` can fail when a source or test file crosses its line-budget threshold, even if the behavior change is correct. Prefer consolidating adjacent assertions into table-driven tests or moving coverage to the narrowest existing helper before growing an already-large file.
 
-This came up in issue #10674 / PR #11099 while fixing `src/lib/inference/local.ts` and adding coverage in `src/lib/inference/local.test.ts`; follow-up commit `1c6c8089af` kept the Ollama recovery tests inside the file-size budget after the guardrail check failed.
+Review-loop coverage should also prove the negative boundary explicitly: non-timeout Ollama outages should omit stale-runner and GPU-memory diagnostics, while timeout outages should include them. That guards against helpful recovery text becoming noisy generic advice.
+
+This came up in issue #10674 / PR #11099 while fixing `src/lib/inference/local.ts` and adding coverage in `src/lib/inference/local.test.ts`; follow-up commit `1c6c8089af` kept the Ollama recovery tests inside the file-size budget after the guardrail check failed, and later local commit `b9c1b3b42e` added the stronger non-timeout boundary assertions requested in review.
