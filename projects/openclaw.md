@@ -348,3 +348,18 @@ In `extensions/browser/src/browser-tool-session-tabs.ts`, tab tracking records d
 - cleanup paths remove session-owned tabs rather than relying on a global browser reset.
 
 Practical heuristic: browser automation for agents needs lifecycle ownership and cleanup, not just CDP access. If a tool can create tabs, windows, browser profiles, or long-lived targets, the runtime should record who owns them, prove compatibility before reuse, and compensate if tracking fails after an external resource has already been created.
+
+## Session deletion should name the memory boundary explicitly
+
+OpenClaw issue `#141807` exposed a documentation/CLI boundary around deleted session transcripts and memory search.
+
+`openclaw sessions delete` may retain `.jsonl.deleted.*` transcript archives as deletion evidence or recoverable local state. Retaining that archive is not the same thing as removing the session from every memory/search surface. If the runtime's memory index can still reference a retained deleted archive, the CLI must not let users assume that session deletion automatically equals memory forgetting.
+
+The focused fix in PR `#141841` made the boundary explicit:
+
+- text-mode delete output points to `openclaw memory forget --session <key>` when retained deleted transcript archives are reported;
+- `sessions delete --help` documents that retained delete archives can remain eligible for memory search until memory forget is used;
+- `docs/cli/sessions.md` keeps the same cleanup guidance near the session deletion workflow;
+- tests assert the user-facing guidance appears in both delete output and help text.
+
+Practical heuristic: lifecycle commands that preserve audit/recovery artifacts should name the difference between **resource deletion**, **archive retention**, and **memory/index removal**. If a user asks a runtime to delete a session, tell them plainly when a retained artifact can still influence memory search and provide the exact follow-up command for stronger forgetting semantics.
