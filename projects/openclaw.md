@@ -363,3 +363,16 @@ The focused fix in PR `#141841` made the boundary explicit:
 - tests assert the user-facing guidance appears in both delete output and help text.
 
 Practical heuristic: lifecycle commands that preserve audit/recovery artifacts should name the difference between **resource deletion**, **archive retention**, and **memory/index removal**. If a user asks a runtime to delete a session, tell them plainly when a retained artifact can still influence memory search and provide the exact follow-up command for stronger forgetting semantics.
+
+## Schema-driven forms should keep renderable scalar unions out of Raw mode
+
+OpenClaw issue `#143646` exposed a Control UI schema-analysis boundary: `cron.sessionRetention` has an `anyOf` schema whose branches are a string value or literal boolean `false`, but the config form treated the union as unsupported and showed only Raw mode.
+
+The focused fix in PR `#143677` keeps scalar/literal `anyOf` branches renderable when the UI can represent and commit them without ambiguity:
+
+- literal `false` remains boolean `false` when selected, not string `"false"`;
+- string retention values remain strings;
+- the actual `cron.sessionRetention` schema renders as a normal editable field;
+- unsafe overlapping `oneOf` scalar/literal unions remain unsupported, because `oneOf` exclusivity makes overlap semantically dangerous.
+
+Practical heuristic: schema-driven UIs should distinguish **unsupported because unsafe** from **unsupported because the analyzer gave up too early**. Raw mode is an important fallback, but simple scalar unions should stay in the typed form path when branch selection can preserve the committed value type exactly. Keep rejection tests for genuinely ambiguous unions so broad rendering support does not weaken schema semantics.
