@@ -373,6 +373,10 @@ The focused fix in PR `#143677` keeps scalar/literal `anyOf` branches renderable
 - literal `false` remains boolean `false` when selected, not string `"false"`;
 - string retention values remain strings;
 - the actual `cron.sessionRetention` schema renders as a normal editable field;
-- unsafe overlapping `oneOf` scalar/literal unions remain unsupported, because `oneOf` exclusivity makes overlap semantically dangerous.
+- finite boolean literal unions keep their existing typed path;
+- unsafe overlapping `oneOf` scalar/literal unions remain unsupported, because `oneOf` exclusivity makes overlap semantically dangerous;
+- nullable or unconstrained mixed branches remain unsupported unless the analyzer has a precise typed control contract for them.
+
+A follow-up on the same PR reinforced the boundary: when a review bot finds that a small analyzer fix now admits too many schema shapes, narrow the renderable path to what the UI can prove. For this case, that meant supporting string, number, and integer scalar branches plus finite literal choices, while keeping Raw mode for broad maps, nullable mixes, and other shapes without a clear commit-type contract.
 
 Practical heuristic: schema-driven UIs should distinguish **unsupported because unsafe** from **unsupported because the analyzer gave up too early**. Raw mode is an important fallback, but simple scalar unions should stay in the typed form path when branch selection can preserve the committed value type exactly. Keep rejection tests for genuinely ambiguous unions so broad rendering support does not weaken schema semantics.
