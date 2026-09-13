@@ -380,3 +380,9 @@ The focused fix in PR `#143677` keeps scalar/literal `anyOf` branches renderable
 A follow-up on the same PR reinforced the boundary: when a review bot finds that a small analyzer fix now admits too many schema shapes, narrow the renderable path to what the UI can prove. For this case, that meant supporting string, number, and integer scalar branches plus finite literal choices, while keeping Raw mode for broad maps, nullable mixes, and other shapes without a clear commit-type contract.
 
 Practical heuristic: schema-driven UIs should distinguish **unsupported because unsafe** from **unsupported because the analyzer gave up too early**. Raw mode is an important fallback, but simple scalar unions should stay in the typed form path when branch selection can preserve the committed value type exactly. Keep rejection tests for genuinely ambiguous unions so broad rendering support does not weaken schema semantics.
+
+## Close superseded PRs instead of preserving duplicate work
+
+OpenClaw PR `#143677` fixed the `cron.sessionRetention` scalar/literal schema-union rendering bug, but upstream later landed the canonical fix in PR `#143700`. Once current `main` already contained the repair and review automation confirmed the duplication, keeping the older PR open would only add maintainer noise.
+
+Practical heuristic: after upstream drift, re-check whether the bug still exists before continuing review follow-up. If a canonical or maintainer-preferred PR has already solved the issue, close the duplicate with a concise superseded-by note rather than rebasing or defending stale work. The goal is useful project state, not preserving authorship of a patch.
