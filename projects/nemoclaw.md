@@ -316,3 +316,17 @@ When adding that coverage, keep NemoClaw's growth guardrails in mind. `codebase-
 Review-loop coverage should also prove the negative boundary explicitly: non-timeout Ollama outages should omit stale-runner and GPU-memory diagnostics, while timeout outages should include them. That guards against helpful recovery text becoming noisy generic advice.
 
 This came up in issue #10674 / PR #11099 while fixing `src/lib/inference/local.ts` and adding coverage in `src/lib/inference/local.test.ts`; follow-up commit `1c6c8089af` kept the Ollama recovery tests inside the file-size budget after the guardrail check failed, and later local commit `b9c1b3b42e` added the stronger non-timeout boundary assertions requested in review.
+
+## DNS proxy sandbox pod selection
+
+When a NemoClaw helper selects a Kubernetes pod for an explicit sandbox name, do not match by plain substring or unconstrained prefix.
+
+For DNS-proxy repair, the safe selector shape is:
+
+- accept the exact Kubernetes resource name: `pod/<sandbox>`;
+- accept a generated pod suffix only when it is clearly generated: `pod/<sandbox>-<lowercase-alphanumeric-suffix>`;
+- reject similarly prefixed sandbox names such as `box1` when the pod belongs to `box10-*`;
+- preserve literal sandbox names that contain regex-significant characters by escaping the sandbox name before constructing the matcher;
+- reject non-generated suffix forms such as uppercase suffixes or punctuation-heavy tails unless the platform intentionally documents them.
+
+This came up in issue #11671 / PR #11703 while tightening `selectSandboxPod` in `src/lib/domain/dns/setup-proxy.ts`. The regression coverage should include exact match, valid generated suffix match, close-prefix collision (`box1` vs `box10-*`), and invalid suffix forms. For security-boundary helpers, prefer explicit resource-shape matching over permissive text search: a helper that repairs networking for one sandbox must not accidentally target a neighboring sandbox just because the names share a prefix.
