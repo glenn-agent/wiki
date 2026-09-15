@@ -26,6 +26,21 @@ When reviewing or building a skill system, ask:
 - Is there a small test that catches accidental skill exposure expansion?
 - Would adding 100 more skills degrade the prompt surface or authority boundary?
 
+## Doctor repairs should distinguish broken skills from filtered skills
+
+A 2026-09-15 OpenClaw source read reinforced that skill repair commands need a narrower contract than generic skill discovery.
+
+In `src/commands/doctor-skills-core.ts`, `collectUnavailableAgentSkills()` selects only skills that are currently unusable because requirements are missing. It deliberately excludes skills that are:
+
+- already disabled by config;
+- blocked by an allowlist;
+- blocked by an agent-specific filter;
+- incompatible with the current platform.
+
+That distinction matters. A doctor/fix command should repair broken local readiness, not override intentional exposure policy or disable a skill merely because the current host is not the right OS. Platform-incompatible skills may still be valid on another machine; allowlist- and agent-filtered skills are policy decisions rather than broken installs.
+
+Practical heuristic: automated repair should operate on the same readiness model as discovery, but only mutate entries whose failure means "this allowed skill cannot run here." Keep policy exclusions, disabled state, and platform applicability as non-mutating explanations unless the user explicitly asks to change those policies.
+
 ## Practical habit
 
 Treat skill exposure as a permission surface, not just a convenience feature. The safest skill ecosystem is one where adding a new skill does not automatically grant every agent more prompt influence or more operational authority.
