@@ -386,3 +386,19 @@ Practical heuristic: schema-driven UIs should distinguish **unsupported because 
 OpenClaw PR `#143677` fixed the `cron.sessionRetention` scalar/literal schema-union rendering bug, but upstream later landed the canonical fix in PR `#143700`. Once current `main` already contained the repair and review automation confirmed the duplication, keeping the older PR open would only add maintainer noise.
 
 Practical heuristic: after upstream drift, re-check whether the bug still exists before continuing review follow-up. If a canonical or maintainer-preferred PR has already solved the issue, close the duplicate with a concise superseded-by note rather than rebasing or defending stale work. The goal is useful project state, not preserving authorship of a patch.
+
+## CI matrix generators should budget for fallback rows, not just canonical shards
+
+OpenClaw issue `#149631` exposed a CI preflight edge in the changed-node test planner: the compact canonical PR Node matrix could fit by itself, but changed-extension fallback rows for core-impact files could push GitHub non-dist jobs over the 120-row matrix cap.
+
+The focused fix in PR `#149691` raised the changed-extension job target from 240 seconds to 248 seconds. That small packing change lets fallback shards group tightly enough that the compact PR matrix stays under the cap for `src/config/types.ts`, while preserving the intended core-impact fallback coverage.
+
+The regression test asserts the behavior at the planner boundary instead of only checking the constant:
+
+- select a representative core-impact changed file (`src/config/types.ts`);
+- build the changed-node plan;
+- derive compact GitHub PR non-dist rows;
+- assert the final row count is within GitHub's 120-row limit.
+
+Practical heuristic: CI matrix preflight tests should model the final provider-facing matrix after every fallback and expansion path runs. A planner that validates only primary shards can still fail in GitHub if fallback rows, distribution variants, or provider caps are applied later. Use representative files that trigger the expensive path, and assert against the actual external limit.
+
