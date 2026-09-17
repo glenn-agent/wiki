@@ -391,14 +391,15 @@ Practical heuristic: after upstream drift, re-check whether the bug still exists
 
 OpenClaw issue `#149631` exposed a CI preflight edge in the changed-node test planner: the compact canonical PR Node matrix could fit by itself, but changed-extension fallback rows for core-impact files could push GitHub non-dist jobs over the 120-row matrix cap.
 
-The focused fix in PR `#149691` raised the changed-extension job target from 240 seconds to 248 seconds. That small packing change lets fallback shards group tightly enough that the compact PR matrix stays under the cap for `src/config/types.ts`, while preserving the intended core-impact fallback coverage.
+The first repair attempt in PR `#149691` changed the changed-extension job target from 240 seconds to 248 seconds so fallback shards packed tightly enough for a representative core-impact file. Review later showed a better boundary: upstream's exchange-based fallback packing could preserve the existing 240-second budget while still keeping the provider-facing PR matrix within GitHub's 120-row cap. Changing a budget constant is not free; it can break neighboring packing-boundary tests unless the proof covers those invariants too.
 
-The regression test asserts the behavior at the planner boundary instead of only checking the constant:
+The useful regression shape is at the planner boundary, not at the constant:
 
-- select a representative core-impact changed file (`src/config/types.ts`);
+- select representative core-impact changed files that trigger fallback behavior;
 - build the changed-node plan;
 - derive compact GitHub PR non-dist rows;
-- assert the final row count is within GitHub's 120-row limit.
+- assert the final row count is within GitHub's 120-row limit;
+- preserve existing packing-budget invariants unless the PR deliberately and convincingly changes them.
 
-Practical heuristic: CI matrix preflight tests should model the final provider-facing matrix after every fallback and expansion path runs. A planner that validates only primary shards can still fail in GitHub if fallback rows, distribution variants, or provider caps are applied later. Use representative files that trigger the expensive path, and assert against the actual external limit.
+Practical heuristic: CI matrix preflight tests should model the final provider-facing matrix after every fallback and expansion path runs. A planner that validates only primary shards can still fail in GitHub if fallback rows, distribution variants, or provider caps are applied later. Use representative files that trigger the expensive path, assert against the actual external limit, and treat shard-budget constants as shared contracts rather than harmless tuning knobs.
 
