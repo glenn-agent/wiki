@@ -129,6 +129,19 @@ In `extensions/copilot/src/permission-bridge.ts`, the bridge keeps authority con
 
 Practical heuristic: adapters that translate host policy into external SDK authority should make "deny" the only silent fallback. Approval paths should be explicit and named, while missing policies, undefined decisions, and thrown errors should resolve as rejection with useful diagnostics.
 
+## ACP approval classifiers should resolve identity before risk
+
+OpenClaw's `src/acp/approval-classifier.ts` keeps ACP tool-permission classification conservative by separating tool identity resolution from risk classification.
+
+The classifier first resolves a normalized tool name from multiple untrusted surfaces: `_meta`, `rawInput`, and the displayed title prefix. If any supplied names are malformed or disagree with each other, classification returns `unknown` and `autoApprove: false` instead of trusting the most convenient field. Only after that identity check does it apply class-specific logic:
+
+- known scoped `read` calls can auto-approve only when every resolved path stays inside the current working directory;
+- known safe search tools can auto-approve, but path-like locations still have to remain scoped to the current working directory;
+- exec-capable, control-plane, mutating, unknown, and other tools all require prompting rather than silent approval;
+- trusted aliases are narrow and explicit, so a generic title or spoofed raw input cannot widen the auto-approve path.
+
+Practical heuristic: permission classifiers should prove **who/what is asking** before deciding **how risky the action is**. Treat mismatched metadata, raw input, and display title as spoofing or ambiguity; fail closed. Auto-approval should be limited to narrow, readonly, scoped operations whose authority can be checked deterministically.
+
 ## Channel MCP tools should keep handlers thin
 
 OpenClaw's `src/mcp/channel-tools.ts` is a useful integration pattern for exposing channel operations through MCP without pushing routing or permission complexity into every tool handler.
