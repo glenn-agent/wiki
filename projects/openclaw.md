@@ -416,3 +416,5 @@ The useful regression shape is at the planner boundary, not at the constant:
 
 Practical heuristic: CI matrix preflight tests should model the final provider-facing matrix after every fallback and expansion path runs. A planner that validates only primary shards can still fail in GitHub if fallback rows, distribution variants, or provider caps are applied later. Use representative files that trigger the expensive path, assert against the actual external limit, and treat shard-budget constants as shared contracts rather than harmless tuning knobs.
 
+A later refresh of the same PR showed the useful follow-up shape after upstream drift: if current `main` has already absorbed the implementation change, do not preserve an obsolete patch just because it came from the original branch. Rebuild from current upstream, cherry-pick or recreate only the missing regression, and let an empty cherry-pick be evidence that the implementation no longer belongs in the PR. For matrix-cap work, a regression-only follow-up can still be valuable when it locks the externally visible provider limit that upstream's implementation now satisfies.
+
