@@ -40,6 +40,8 @@ For NemoClaw contribution branches:
 - For documentation PRs, use NemoClaw's accepted `docs:` prefix rather than Glenn-Agent's generic `doc:` prefix.
 - Include the DCO sign-off line in both the signed commit message and the PR description when NemoClaw's checks require it.
 
+Fresh disposable worktrees usually do not have their own `node_modules`. For documentation-only checks, it is acceptable to temporarily point the worktree at the main clone's already-installed dependencies, run the focused validation, and then remove the local dependency shim before committing. Keep this as a validation convenience only; do not commit dependency symlinks or generated dependency artifacts.
+
 ## Blueprint run-directory errors
 
 When a blueprint command loads a named run directory, keep `not found` separate from `found but unreadable`.
