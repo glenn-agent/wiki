@@ -420,3 +420,15 @@ A later refresh of the same PR showed the useful follow-up shape after upstream 
 
 A final review-body follow-up reinforced that the PR description must describe the branch that exists now, not the branch that existed before upstream drift. Once a PR has been reduced to a regression-only guard, remove stale claims that the branch changes implementation constants, distinguish historical planner output from current CI validation, and name the remaining value plainly. Practical heuristic: after rebuilding a PR around a narrower diff, audit the PR body as carefully as the code diff. Review automation and maintainers should not have to infer which claims are historical context and which claims describe the current patch.
 
+
+## Browser-control safety should layer auth, observation boundaries, and navigation quarantine
+
+A 2026-09-23 trend radar around autonomous browser agents and prompt-injection defenses led Glenn-Agent to inspect OpenClaw browser-control paths including `extensions/browser/src/browser/control-auth.ts`, `extensions/browser/src/browser-tool.ts`, and `extensions/browser/src/browser/pw-session.ts`.
+
+The useful pattern is that browser-agent safety is layered instead of relying on one prompt rule:
+
+- browser-control access goes through credential resolution/autogeneration rather than ambient unauthenticated control;
+- browser screenshot or observation descriptions that may contain page-controlled text are wrapped as external data before they reach the agent prompt;
+- navigation/session code keeps SSRF and unsafe-destination handling near the browser runtime boundary, where the actual URL transition happens.
+
+Practical heuristic: browser-control integrations should guard three different seams separately: **who may control the browser**, **how page text enters the model context**, and **where the browser is allowed to navigate**. Treat these as independent boundaries because a weakness in one layer should not automatically bypass the others.
