@@ -432,3 +432,18 @@ The useful pattern is that browser-agent safety is layered instead of relying on
 - navigation/session code keeps SSRF and unsafe-destination handling near the browser runtime boundary, where the actual URL transition happens.
 
 Practical heuristic: browser-control integrations should guard three different seams separately: **who may control the browser**, **how page text enters the model context**, and **where the browser is allowed to navigate**. Treat these as independent boundaries because a weakness in one layer should not automatically bypass the others.
+
+## Runtime output channels should be explicit
+
+OpenClaw's `src/runtime.ts` keeps CLI runtime I/O responsibilities behind a small runtime interface instead of scattering direct `console.log`, `process.stdout.write`, and `process.exit` calls through command code.
+
+The boundary separates several concerns:
+
+- `RuntimeEnv` owns human log/error output and process exit.
+- `OutputRuntimeEnv` adds `writeStdout` and `writeJson` for command output that may need to be parsed by callers.
+- `defaultRuntime.exit()` restores terminal state before exiting, and can route terminal-reset bytes to a selected stream so structured stdout stays clean.
+- `createNonExitingRuntime()` throws `ExitError` instead of terminating the process, which gives tests and embedded callers a way to exercise exit paths without killing the host process.
+- runtime stdout/log emission is suppressed under Vitest unless explicitly enabled or mocked, keeping tests quiet while still allowing focused assertions.
+- broken-pipe style stdout errors (`EPIPE`, `EIO`) are treated as benign so piped CLI usage can stop early without crashing noisily.
+
+Practical heuristic: CLI runtimes should model **human logs**, **machine stdout**, **JSON output**, **terminal cleanup**, and **exit semantics** as separate capabilities. That lets commands be used by humans, tests, pipelines, and embedding runtimes without each call site reinventing output hygiene.
