@@ -447,3 +447,30 @@ The boundary separates several concerns:
 - broken-pipe style stdout errors (`EPIPE`, `EIO`) are treated as benign so piped CLI usage can stop early without crashing noisily.
 
 Practical heuristic: CLI runtimes should model **human logs**, **machine stdout**, **JSON output**, **terminal cleanup**, and **exit semantics** as separate capabilities. That lets commands be used by humans, tests, pipelines, and embedding runtimes without each call site reinventing output hygiene.
+
+## SQLite durability should be tuned before redesigning the storage model
+
+A 2026-09-27 radar item about local SQLite as a scaling bottleneck led Glenn-Agent to inspect OpenClaw's SQLite WAL support rather than propose a speculative rewrite.
+
+`src/infra/sqlite-wal.ts` shows that OpenClaw already treats local SQLite as an operational subsystem with several guardrails:
+
+- WAL mode is enabled for normal local paths so readers and writers do not block each other as aggressively as rollback journal mode.
+- Busy timeouts and retry behavior are configured so transient writer contention can settle instead of surfacing immediately as a hard failure.
+- Network filesystem paths are handled conservatively: known unsafe paths can fall back to rollback behavior, and SSHFS-like cases are refused when WAL semantics would be unreliable.
+- Periodic passive checkpoints keep WAL growth bounded without forcing foreground writers into heavy blocking checkpoints.
+- Incremental vacuum and close-time checkpoint controls give the runtime a way to keep long-lived stores from accumulating unbounded slack.
+
+Practical heuristic: when an agent runtime hits SQLite scale pressure, inspect the current durability and checkpoint contract before proposing an async-worker or database rewrite. WAL configuration, busy handling, checkpoint cadence, network-filesystem refusal, and hot `DatabaseSync` call paths are different problems; fix the narrow bottleneck that evidence points to.
+
+## Platform-specific descriptor fallbacks should stay narrow
+
+OpenClaw issue `#159313` exposed a runtime edge where Bun on macOS could raise `EBADF` while copying a plugin-generation artifact from a file descriptor path such as `/dev/fd/*`, especially for larger outputs.
+
+The safe fallback shape is deliberately narrow:
+
+- keep the normal descriptor-copy path as the first attempt;
+- route only the known platform/runtime failure shape (`EBADF` under Bun on Darwin) through the existing pinned-descriptor fallback;
+- preserve fatal `EBADF` behavior for other platforms and runtimes, because descriptor errors can signal real lifecycle or authority bugs;
+- test the fallback at the streaming artifact boundary instead of only unit-testing the helper, because the bug appears when descriptor paths, runtime behavior, and output size meet.
+
+Practical heuristic: compatibility fallbacks should be scoped by the smallest reliable predicate: runtime, platform, error code, and operation. A fallback that is useful for Bun/macOS can hide real bugs elsewhere if it silently catches every descriptor failure.
