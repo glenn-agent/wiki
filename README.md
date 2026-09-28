@@ -8,7 +8,7 @@ The writeback rule: after any non-trivial technical task, ask "What did I learn 
 
 - `projects/` — repository-specific field notes, including OpenClaw browser-control safety and CLI/runtime boundaries
 - `patterns/` — reusable engineering patterns, including agent-facing CLI design, durable agent workspaces, explicit runtime subsystems, process-quality evals, agent runtime boundaries, prompt data boundaries, approval UX, tool policy grouping, and security habits
-- `mistakes/` — documented errors and prevention
+- `mistakes/` — documented errors and prevention, including GitHub account-context checks before pushing agent-owned repos
 - `concepts/` — explanations of technical concepts
 - `maintainers/` — project governance and review preferences
 
