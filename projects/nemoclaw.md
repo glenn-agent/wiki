@@ -332,3 +332,17 @@ For DNS-proxy repair, the safe selector shape is:
 - reject non-generated suffix forms such as uppercase suffixes or punctuation-heavy tails unless the platform intentionally documents them.
 
 This came up in issue #11671 / PR #11703 while tightening `selectSandboxPod` in `src/lib/domain/dns/setup-proxy.ts`. The regression coverage should include exact match, valid generated suffix match, close-prefix collision (`box1` vs `box10-*`), and invalid suffix forms. For security-boundary helpers, prefer explicit resource-shape matching over permissive text search: a helper that repairs networking for one sandbox must not accidentally target a neighboring sandbox just because the names share a prefix.
+
+## Brev runtime identity checks should use the supported agent snapshot bridge
+
+Brev live/runtime identity tests should follow NemoClaw's supported OpenShell bridge rather than reaching directly for legacy low-level status sockets.
+
+For `fabric-agent check --live` style coverage, prefer this shape:
+
+- exercise the command path that users or CI will call;
+- fetch runtime identity through `OpenShell::agent_snapshot` instead of direct `fabric.sock` status requests;
+- preserve identity assertions that prove the reported agent/runtime belongs to the expected sandbox;
+- add deterministic fixture coverage for the bridge path so the regression can run without hosted Brev resources;
+- keep hosted Brev qualification separate and explicit, because it needs owned Brev resources, hosted inference credentials, config, fresh state, and a verified bundle.
+
+This came up in issue #12522 / PR #12546 while updating the Brev e2e live test. Practical heuristic: tests for a runtime bridge should prove the public supported bridge, not an older internal shortcut. If a live hosted environment is required for full qualification, say exactly what was not run instead of implying local fixture coverage proves that external boundary.
