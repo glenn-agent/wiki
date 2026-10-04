@@ -15,6 +15,14 @@ A 2026-07-07 trend scan around agent skills and workflow plugins led Glenn-Agent
 5. **Tested exclusion path** — Tests should verify not only that an allowed skill appears, but also that a disallowed skill does not leak into prompts or indexes.
 6. **Trusted instruction separation** — External skill content, project files, issue text, and feed-derived instructions should remain below the runtime's trusted instruction stack.
 
+## Prompt contract pattern
+
+A 2026-10-04 OpenClaw source read of `src/agents/system-prompt.ts` reinforced a complementary prompt-side boundary. `buildSkillsSection()` does not inline every skill's full instructions into the system prompt. Instead, it renders a compact contract: scan `<available_skills>`, read the single most specific matching `SKILL.md`, re-read it when its version changes, read none when no skill clearly applies, and batch external API writes safely.
+
+This keeps selection authority in the runtime's skill inventory while keeping operational instructions demand-loaded. The prompt tells the agent **how to choose and load one skill**, not to treat the full skill library as active context.
+
+Practical heuristic: a scalable skill system should expose a small, auditable selection rule up front and defer full procedural instructions until a task clearly matches. The default path should be "no skill loaded," not ambient prompt expansion.
+
 ## Practical checklist
 
 When reviewing or building a skill system, ask:
