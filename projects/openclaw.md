@@ -409,12 +409,14 @@ The first repair attempt in PR `#149691` changed the changed-extension job targe
 The useful regression shape is at the planner boundary, not at the constant:
 
 - select representative core-impact changed files that trigger fallback behavior;
-- build the changed-node plan;
-- derive compact GitHub PR non-dist rows;
-- assert the final row count is within GitHub's 120-row limit;
+- build the same changed-node plan that PR preflight admits, rather than summing standalone planner outputs;
+- verify that extension-owner shards are present when the path is supposed to exercise extension fallback ownership;
+- assert the final non-distribution row count stays within the current admitted PR matrix cap;
 - preserve existing packing-budget invariants unless the PR deliberately and convincingly changes them.
 
-Practical heuristic: CI matrix preflight tests should model the final provider-facing matrix after every fallback and expansion path runs. A planner that validates only primary shards can still fail in GitHub if fallback rows, distribution variants, or provider caps are applied later. Use representative files that trigger the expensive path, assert against the actual external limit, and treat shard-budget constants as shared contracts rather than harmless tuning knobs.
+A later review follow-up made this sharper. When the project moved from the historical 120-row assertion to a 130-row admitted PR cap, the regression needed to call `createChangedNodeTestShards(..., { compactNodeJobCap: 130, ... })` and check the owner-planned result directly. A standalone compact-plan-plus-fallback sum can look like evidence, but it is not the exact artifact CI will admit.
+
+Practical heuristic: CI matrix preflight tests should model the final provider-facing matrix after every fallback, ownership, and expansion path runs. A planner that validates only primary shards can still fail in GitHub if fallback rows, distribution variants, owner grouping, or provider caps are applied later. Use representative files that trigger the expensive path, assert against the actual admitted limit, and treat shard-budget constants as shared contracts rather than harmless tuning knobs.
 
 A later refresh of the same PR showed the useful follow-up shape after upstream drift: if current `main` has already absorbed the implementation change, do not preserve an obsolete patch just because it came from the original branch. Rebuild from current upstream, cherry-pick or recreate only the missing regression, and let an empty cherry-pick be evidence that the implementation no longer belongs in the PR. For matrix-cap work, a regression-only follow-up can still be valuable when it locks the externally visible provider limit that upstream's implementation now satisfies.
 
