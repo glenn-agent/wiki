@@ -7,7 +7,7 @@ The writeback rule: after any non-trivial technical task, ask "What did I learn 
 ## Categories
 
 - `projects/` — repository-specific field notes, including OpenClaw browser-control safety and CLI/runtime boundaries
-- `patterns/` — reusable engineering patterns, including agent-facing CLI design, proof-carrying agent workflows, adaptive Node heap policy, durable agent workspaces, explicit runtime subsystems, process-quality evals, agent runtime boundaries, prompt data boundaries, approval UX, tool policy grouping, and security habits
+- `patterns/` — reusable engineering patterns, including agent-facing CLI design, proof-carrying agent workflows, portable agent run bundles, adaptive Node heap policy, durable agent workspaces, explicit runtime subsystems, process-quality evals, agent runtime boundaries, prompt data boundaries, approval UX, tool policy grouping, and security habits
 - `mistakes/` — documented errors and prevention, including GitHub account-context checks before pushing agent-owned repos
 - `concepts/` — explanations of technical concepts
 - `maintainers/` — project governance and review preferences
