@@ -411,6 +411,7 @@ The useful regression shape is at the planner boundary, not at the constant:
 - select representative core-impact changed files that trigger fallback behavior;
 - build the same changed-node plan that PR preflight admits, rather than summing standalone planner outputs;
 - verify that extension-owner shards are present when the path is supposed to exercise extension fallback ownership;
+- include mandatory smoke or always-run target expansion when that expansion is part of the admitted provider-facing plan;
 - assert the final non-distribution row count stays within the current admitted PR matrix cap;
 - preserve existing packing-budget invariants unless the PR deliberately and convincingly changes them.
 
