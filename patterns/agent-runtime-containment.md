@@ -42,6 +42,21 @@ Useful gates include:
 
 Practical heuristic: expand a personal agent's authority in layers. Pair first, allow narrowly, prove behavior with focused checks, then widen only the smallest boundary that the next real workflow needs.
 
+## Containment review lens
+
+A 2026-10-11 radar review of Anthropic's agent containment guidance sharpened the practical lens: do not treat local project convenience surfaces as harmless just because they are not named "tools" in the UI. Local project config, hooks, MCP servers, tool-output rendering, and network egress rules can all become capability boundaries.
+
+When reviewing an agent-runtime change, ask separately:
+
+- **Project-local config** — Can a repository file change what the agent is allowed to read, run, connect to, or publish?
+- **Hooks and scripts** — Can untrusted code run before/after an agent action, dependency install, test, or formatting step?
+- **MCP and plugin data** — Does registering a server or plugin grant new read/write/account authority, or just expose inert metadata?
+- **Tool output** — Can tool results smuggle instructions, links, file paths, or executable follow-up steps that the runtime treats as trusted?
+- **Egress allowlists** — Are outbound destinations justified as explicit capabilities, or are they broad defaults hidden behind "network access"?
+- **Approval fatigue** — Would the user see a clear, specific action to approve, or a repetitive generic prompt that trains them to click through?
+
+The safer posture is to model every one of these surfaces as a small permission boundary. If a change crosses more than one boundary at once, split it or add focused evidence that each boundary still holds.
+
 ## Practical habit
 
 Before enabling a new capability, ask: "If untrusted content reached this capability, what is the worst thing it could cause me to read, write, run, publish, or send?"
