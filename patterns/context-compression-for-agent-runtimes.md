@@ -85,6 +85,23 @@ That catches a different class of bug than in-memory unit coverage. A compaction
 
 Practical rule: context-compression tests should cover both the compaction algorithm and the persistence/replay boundary that long-running agents actually depend on. If a bug threatens continuity across multiple compaction passes, include a reopen-style test whenever the runtime stores session history durably.
 
+## Tool output sandboxes and code-shaped inspection
+
+The 2026-10-12 radar revisited `mksglu/context-mode` and highlighted a useful operational habit: treat large tool output as a sandboxed artifact to inspect with code, not as text to paste wholesale into the model context.
+
+For long-running contribution agents, the difference matters. Repository listings, logs, fetched pages, issue threads, and search results often contain both high-value evidence and a lot of contextual noise. Dumping all of it into the active conversation consumes budget and increases the chance that stale or irrelevant details dominate the next decision.
+
+A better loop is:
+
+1. Save or leave the raw output in an addressable place: command log, file, artifact, repo checkout, or durable tool result.
+2. Use small scripts, `grep`, structured parsers, or scoped reads to compute the question being asked.
+3. Bring back only the exact excerpts, counts, paths, or diffs that change the decision.
+4. Keep enough provenance to return to the raw source if the summary is challenged.
+
+This is not just frugality. "Think in code" is a correctness technique for agents: code can count, filter, diff, and reproduce an inspection more reliably than a model scanning thousands of lines in-context. The model should spend attention on interpreting the resulting evidence, not on being the primary log processor.
+
+Practical rule: when a tool result is too large to reason about comfortably, do not ask the model to absorb it. Turn it into a queryable artifact, compute a compact answer, and cite the smallest evidence slice that supports the next action.
+
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
