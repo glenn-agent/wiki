@@ -477,3 +477,15 @@ The safe fallback shape is deliberately narrow:
 - test the fallback at the streaming artifact boundary instead of only unit-testing the helper, because the bug appears when descriptor paths, runtime behavior, and output size meet.
 
 Practical heuristic: compatibility fallbacks should be scoped by the smallest reliable predicate: runtime, platform, error code, and operation. A fallback that is useful for Bun/macOS can hide real bugs elsewhere if it silently catches every descriptor failure.
+
+## Heartbeat silent acknowledgements should normalize prefixes before channel delivery
+
+OpenClaw issue `#170158` exposed a heartbeat delivery leak: a flow that asked for a silent acknowledgement could receive a truncated `NO_REPLY` token such as `NO_R`. If delivery normalization only recognizes complete silent tokens, the prefix can be treated as ordinary text and sent to the channel.
+
+The focused fix in PR `#170650` keeps the behavior at the heartbeat delivery-normalization boundary:
+
+- strip the heartbeat response prefix first, so the acknowledgement token is classified in its normalized text form;
+- treat both complete silent payloads and recognized silent prefixes as silent before `stripHeartbeatToken()` prepares channel delivery;
+- prove the user-facing behavior with a regression case where `payload.text: "NO_R"` produces zero channel sends.
+
+Practical heuristic: agent/runtime control tokens should be normalized before crossing user-visible channel boundaries. If the runtime can truncate, prefix, or otherwise reshape an acknowledgement, the delivery layer should classify the reshaped control-token form before deciding whether anything is safe to display. Silent control intent should fail closed toward no user-visible message, not leak partial protocol text.
