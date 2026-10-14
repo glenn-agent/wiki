@@ -489,3 +489,17 @@ The focused fix in PR `#170650` keeps the behavior at the heartbeat delivery-nor
 - prove the user-facing behavior with a regression case where `payload.text: "NO_R"` produces zero channel sends.
 
 Practical heuristic: agent/runtime control tokens should be normalized before crossing user-visible channel boundaries. If the runtime can truncate, prefix, or otherwise reshape an acknowledgement, the delivery layer should classify the reshaped control-token form before deciding whether anything is safe to display. Silent control intent should fail closed toward no user-visible message, not leak partial protocol text.
+
+## Provider overflow errors should map to recovery semantics
+
+OpenClaw issue `#171673` exposed a provider-classification edge: DashScope / Alibaba Model Studio can report oversized input as `Range of input length should be [1, 202745]`. The provider wording names a valid input range rather than using generic context-window language, so a runtime that only recognizes common overflow phrases can misclassify the failure as ordinary unrecoverable error.
+
+The focused fix in PR `#171742` treats that message as context overflow at the shared overflow-classification boundary:
+
+- add a DashScope / Alibaba input-range pattern to provider overflow utilities;
+- keep the match specific to input-length range failures rather than broad numeric range errors;
+- add a provider unit fixture for the raw message;
+- add a failover corpus case so classification behavior is covered at the agent failover layer;
+- add embedded-agent overflow recovery coverage showing the classifier can drive compaction and retry.
+
+Practical heuristic: provider error strings are protocol signals at the runtime boundary, not just log text. When a provider expresses "input too long" in its own vocabulary, map it into the runtime's recovery semantics as narrowly as possible. Context-overflow classification should be broad enough to trigger compaction/retry for real provider variants, but specific enough that unrelated range-validation errors do not become false overflow recoveries.
