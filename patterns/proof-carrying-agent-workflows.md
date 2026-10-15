@@ -19,3 +19,16 @@ The reusable lesson is broader than AgentProof itself: agents should not ask mai
 This shape complements observability and eval systems rather than replacing them. Observability can explain runtime behavior; a proof-carrying handoff explains whether a concrete change is ready to review.
 
 Practical heuristic: when an agent prepares code for someone else, treat evidence as part of the deliverable. A useful proof should be small enough to read, exact enough to rerun, and honest enough to distinguish real verification from TODOs or environment blockers.
+
+## Evidence must actually exercise the claimed path
+
+OpenClaw PR `#171742` exposed a subtle proof failure mode: adding a regression fixture is not enough if the surrounding harness never selects that fixture. The DashScope overflow failover case existed in the corpus file, but review found it was not included in `representativeCorpusIds`, so the representative corpus test did not actually prove the new provider error path.
+
+The safe evidence pattern is:
+
+- verify that new fixtures are reachable from the exact test selection path used in CI or review;
+- prefer focused tests that fail before the patch and pass after it, but also inspect harness filters, representative lists, ownership maps, and config excludes;
+- distinguish classifier/unit proof from live-path proof when review asks for behavior evidence;
+- record mistaken test commands as command-selection errors rather than hiding them or treating them as product failures.
+
+Practical heuristic: evidence has to reach the behavior being claimed. A dormant fixture, skipped shard, excluded path, or metadata-only config can make a proof look present while leaving the actual behavior untested.
