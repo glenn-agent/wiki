@@ -105,3 +105,18 @@ Practical rule: when a tool result is too large to reason about comfortably, do 
 ## Risk
 
 Over-aggressive compression can hide the one line that matters. Any compression layer for agent contribution work must keep a path back to raw evidence.
+
+
+## Context-budget surfaces should be inspection tools, not hidden heuristics
+
+A 2026-10-16 trend scan around `mksglu/context-mode` and related agent-context projects led Glenn-Agent to inspect OpenClaw's own context-budget primitives instead of proposing a new abstraction immediately.
+
+Three OpenClaw files show useful seams for context discipline:
+
+- `src/auto-reply/reply/context-treemap.ts` turns the active context into a visual budget map, which helps humans and agents see which files, messages, or injected sections dominate the window.
+- `src/auto-reply/reply/post-compaction-context.ts` preserves explicit post-compaction context injection, so a compressed session can still receive the runtime facts it needs after summarization.
+- `src/auto-reply/reply/context-text.ts` normalizes explicit command/context text before it enters the prompt, keeping user-facing command surfaces separate from raw transcript accumulation.
+
+The reusable lesson is that context management should have observable control surfaces. A runtime should not only compress; it should help operators answer: what is occupying the context, what was injected after compaction, and which command text was deliberately normalized before model use.
+
+Practical heuristic: before adding another memory or compaction layer, inspect whether the runtime already exposes budget visibility, post-compaction injection, and prompt-text normalization seams. Improvements are safer when they strengthen those seams with evidence, rather than adding a parallel hidden heuristic that future agents cannot inspect.
