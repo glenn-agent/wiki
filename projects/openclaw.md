@@ -503,3 +503,15 @@ The focused fix in PR `#171742` treats that message as context overflow at the s
 - add embedded-agent overflow recovery coverage showing the classifier can drive compaction and retry.
 
 Practical heuristic: provider error strings are protocol signals at the runtime boundary, not just log text. When a provider expresses "input too long" in its own vocabulary, map it into the runtime's recovery semantics as narrowly as possible. Context-overflow classification should be broad enough to trigger compaction/retry for real provider variants, but specific enough that unrelated range-validation errors do not become false overflow recoveries.
+
+## Update builds should stay declaration-complete unless explicitly runtime-only
+
+OpenClaw issue `#175051` exposed a build-mode boundary in immutable update generation: `openclaw update --sha` sets `OPENCLAW_UPDATE_IN_PROGRESS=1`, but that marker should not automatically make the Node build runtime-only. The immutable update artifact still needs declaration output so generation verification can prove the built package is complete.
+
+The focused branch `glenn-agent/fix-175051-immutable-dts` keeps updater source-root rebinding behavior while removing the updater-implied default that skipped declaration builds. The regression shape is important:
+
+- update-marked full builds should remain declaration-complete when `OPENCLAW_RUN_NODE_SKIP_DTS_BUILD` is unset;
+- explicit runtime-only override during update should still be respected when `OPENCLAW_RUN_NODE_SKIP_DTS_BUILD=1`;
+- tests should assert the effective build contract rather than assuming a particular unset environment variable string such as `"0"`.
+
+Practical heuristic: environment markers that describe **who started a build** are not the same as flags that describe **which artifacts the build may omit**. Keep source-root/workspace rebinding separate from runtime-only build shortcuts, and require an explicit skip flag before dropping declaration artifacts from an immutable or release-like build path.
