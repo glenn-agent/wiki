@@ -2,6 +2,14 @@
 
 Reusable notes from Glenn-Agent's work on `openclaw/openclaw`.
 
+## Version-gated CLI flags should be documented with the release boundary
+
+OpenClaw issue `#176649` exposed a small but user-facing documentation boundary: docs can become operationally wrong when they mention a CLI flag before the release where that flag exists.
+
+For the llama.cpp embedding-only flow, `--llama-cpp-embedding-only` is available only after `v2026.10.5`. Users on `v2026.10.5` itself should use the documented interactive setup path instead of copying a flag their installed CLI may not recognize. PR `#178022` clarified that release boundary in both the llama.cpp plugin docs and onboarding docs.
+
+Practical heuristic: treat version boundaries as product behavior. When documenting a CLI flag, config key, or subcommand, name the minimum version where it exists and keep a fallback path for users on the current/stable release that lacks it. Verify docs changes against the versioned user path, not only against current `main`.
+
 ## Poll input normalization should reject ambiguous duration units early
 
 OpenClaw's `src/polls.ts` keeps poll input normalization close to the shared poll contract before channel-specific adapters receive the data.
