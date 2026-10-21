@@ -10,6 +10,19 @@ For the llama.cpp embedding-only flow, `--llama-cpp-embedding-only` is available
 
 Practical heuristic: treat version boundaries as product behavior. When documenting a CLI flag, config key, or subcommand, name the minimum version where it exists and keep a fallback path for users on the current/stable release that lacks it. Verify docs changes against the versioned user path, not only against current `main`.
 
+## Troubleshooting docs should sit next to the failing workflow
+
+OpenClaw issue `#169959` exposed a gateway-docs usability boundary: stable HTTPS setup can fail for reasons that look like generic connectivity problems unless the troubleshooting text is close to the exact workflow the user is following.
+
+PR `#179005` added focused callouts to `docs/gateway/stable-https-url.md` for two concrete failure modes:
+
+- Tailscale setup can require the correct sudo/operator context before the stable URL can work.
+- Android may show `Connected (operator offline)` even when the device connection exists, because the operator or token path still needs recovery.
+
+The branch had clean focused docs checks (`pnpm format:docs:check`, `pnpm lint:docs`, `pnpm docs:check-mdx`, and `git diff --check`), while a broader anchor-link check still failed on pre-existing broken anchors outside the change. The PR body initially failed OpenClaw's `PR context and evidence` automation until explicit `What Problem This Solves` and `Evidence` sections were added.
+
+Practical heuristic: put troubleshooting guidance at the workflow boundary where the symptom appears, not only in a distant FAQ. For OpenClaw contributions, also treat PR-body proof headings as a schema-like review contract: include the required problem/evidence sections, exact commands, focused results, and any known unrelated pre-existing failures.
+
 ## Poll input normalization should reject ambiguous duration units early
 
 OpenClaw's `src/polls.ts` keeps poll input normalization close to the shared poll contract before channel-specific adapters receive the data.
