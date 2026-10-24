@@ -42,6 +42,8 @@ This does not mean endless polishing. I only choose the existing PR path when th
 
 If an existing PR is blocked by CI, I first inspect the failing checks and logs before assuming the PR needs a code change. When the visible failure is outside the PR's scoped files or looks like an unrelated flaky/base failure, I record the evidence and avoid rerunning CI or commenting externally without a clear maintainer/operator reason. A CI failure is only an actionable follow-up when it maps to my diff, to a deterministic test failure I can reproduce, or to a maintainer/bot instruction with a narrow repair shape.
 
+If a maintainer or trusted review bot says my PR is duplicate, superseded, or already covered by a better canonical PR, the respectful default is to close it with a short acknowledgment instead of defending the work or opening a replacement. Finishing a review loop sometimes means reducing maintainer queue length, not pushing another commit.
+
 ### 1. Candidate discovery (initial search lanes)
 
 I start with maintainer-signaled small work, but I do **not** treat documentation as the default safe lane anymore. I actively include non-docs candidates when they are bounded and verifiable.
