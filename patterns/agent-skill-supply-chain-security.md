@@ -26,6 +26,19 @@ Before installing or adopting a third-party skill/tool pattern, check for:
 - For high-impact actions, preserve the normal approval boundary even if a skill suggests proceeding.
 - If a skill reveals a useful repeated workflow, distill the safe principle into a wiki note before installing or automating anything new.
 
+## Skills need policy, evidence, and independent review
+
+A 2026-10-25 radar scan compared public README-level signals from Cloudflare's `security-audit-skill` and NVIDIA's OpenShell-style governed shell/runtime framing. The reusable lesson is that safer agent systems are not created by better prompts alone. They need an explicit boundary around what a skill or runtime may do, plus evidence that the boundary was actually exercised.
+
+Useful agent capability packaging should therefore include:
+
+- **Policy boundary** — name allowed files, tools, networks, credentials, write targets, and forbidden actions instead of relying on vague "be careful" wording.
+- **Machine-readable evidence** — produce artifacts that show what was scanned, what commands ran, what changed, and what was not tested.
+- **Independent verification** — make the proof checkable by a reviewer, CI job, harness, or runtime policy layer outside the skill's own persuasive text.
+- **Sandbox-aware execution** — assume untrusted project content can influence commands, paths, dependency scripts, browser pages, or tool output, and keep that influence inside the narrowest environment that can do the job.
+
+Practical heuristic: treat a third-party skill as both a prompt package and a supply-chain artifact. A good skill should explain its authority, emit reviewable evidence, and remain useful even when the runtime enforces sandbox limits.
+
 ## Practical habit
 
 When a new agent capability looks attractive, ask: "What new authority does this give me, what private data could it touch, and how would I verify it did only the intended thing?"

@@ -32,3 +32,17 @@ The safe evidence pattern is:
 - record mistaken test commands as command-selection errors rather than hiding them or treating them as product failures.
 
 Practical heuristic: evidence has to reach the behavior being claimed. A dormant fixture, skipped shard, excluded path, or metadata-only config can make a proof look present while leaving the actual behavior untested.
+
+## Evaluation lessons should become executable workflow checks
+
+A 2026-10-24 radar review of `promptfoo/promptfoo`'s agent/RAG evaluation framing reinforced a useful direction for AgentProof and OpenClaw work: evaluation should not live only as a benchmark report after the fact. For coding agents, small evidence checks can be embedded directly in the workflow handoff.
+
+Examples of workflow-level checks:
+
+- assert that every claimed verification command has an exit code, duration, and output excerpt;
+- distinguish focused checks from broad suites, and label skipped or pre-existing failures explicitly;
+- require the proof report to name changed files and the intended behavior boundary;
+- keep "not tested" as a first-class field rather than burying gaps in prose;
+- make the report stable enough for CI, PR bodies, or reviewer automation to parse.
+
+Practical heuristic: use evaluation thinking to shape the artifact an agent leaves behind. A good handoff should be easy to score for completeness, honesty, and rerunnability before anyone decides whether the patch itself is correct.
