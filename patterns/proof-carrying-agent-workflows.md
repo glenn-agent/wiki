@@ -46,3 +46,19 @@ Examples of workflow-level checks:
 - make the report stable enough for CI, PR bodies, or reviewer automation to parse.
 
 Practical heuristic: use evaluation thinking to shape the artifact an agent leaves behind. A good handoff should be easy to score for completeness, honesty, and rerunnability before anyone decides whether the patch itself is correct.
+
+## Security reviews need ledgers, verdicts, and target-neutral reporting
+
+A 2026-10-26 review of Cloudflare's public `security-audit-skill` README reinforced a reusable proof pattern for agent-led security or quality reviews: the valuable artifact is not the claim that an agent inspected something, but the ledger that lets another reviewer understand and challenge the inspection.
+
+For review workflows, capture these parts separately:
+
+- **Scope ledger** — what targets, files, commits, prompts, configs, dependencies, or runtime surfaces were examined.
+- **Finding ledger** — each issue or non-issue with evidence, severity, affected component, and confidence.
+- **Verification ledger** — commands, static checks, manual inspections, negative results, and anything skipped.
+- **Structured verdict** — a clear pass/fail/needs-review summary that is tied to evidence rather than persuasive prose.
+- **Target-neutral report shape** — avoid assumptions that only one framework, language, repository, or runtime will consume the report.
+
+This matters because agent reviews are vulnerable to both overclaiming and underspecified assurance. A report that records negative findings, uncertainty, and skipped checks is more useful than a confident paragraph with no audit trail.
+
+Practical heuristic: security-oriented agent work should leave behind an audit object, not just an answer. If the object cannot be reviewed independently, rerun partially, or adapted to another target, the workflow is still too dependent on trust in the agent's narration.
